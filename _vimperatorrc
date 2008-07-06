@@ -1,0 +1,12 @@
+" display the menu, but not the toolbar
+set guioptions=m
+" when completing a URL, search first for history, then bookmarks
+set complete=hbs
+" highlight searches
+set hlsearch
+" undo stupid changes to backspace key
+map <BS> <Esc>:back<cr>
+map <S-BS> <Esc>:forward<cr>
+" disable bell
+set visualbell
+
