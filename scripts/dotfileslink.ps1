@@ -1,6 +1,7 @@
 
 # creates the links in $HOME to our dotfiles repo
-# requires ln.exe and rj.exe from 
+# requires linkd.exe from the Windows Server 2003 RK
+# and ln.exe from
 # http://www.flexhex.com/docs/articles/hard-links.phtml
 
 ls ~\dotfiles | %{
@@ -8,10 +9,14 @@ ls ~\dotfiles | %{
       if ( test-path "~\$($_.Name)" ) {
          if ( $_.PSIsContainer ) {
             # try to unlink first
-            rj.exe "$HOME\$($_.Name)"
+            linkd.exe "$HOME\$($_.Name)" /d
          }
          rm -r -force "~\$($_.Name)"
       }
-      ln.exe $_.FullName "$HOME\$($_.Name)"
+      if ( $_.PSIsContainer ) {
+         linkd.exe "$HOME\$($_.Name)" $_.FullName
+      } else {
+         ln.exe $_.FullName "$HOME\$($_.Name)"
+      }
    }
 }
