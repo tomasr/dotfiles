@@ -31,7 +31,7 @@ hi Cursor          guifg=#000000 guibg=#F8F8F0
 hi CursorLine                    guibg=#000000
 hi CursorColumn                  guibg=#000000
 hi Debug           guifg=#BCA3A3               gui=bold
-hi Define          guifg=#A6E22E
+hi Define          guifg=#66D9EF
 hi Delimiter       guifg=#8F8F8F
 hi DiffAdd                       guibg=#13354A
 hi DiffChange      guifg=#89807D guibg=#4C4745

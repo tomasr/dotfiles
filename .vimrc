@@ -38,7 +38,7 @@ set clipboard+=unnamed  " Yanks go on clipboard instead.
 set showmatch " Show matching braces.
 
 " Line wrapping on by default
-set wrap 
+set wrap
 set linebreak
 " Map Ctrl-E Ctrl-W to toggle linewrap option like in VS
 noremap <C-E><C-W> :set wrap!<CR>

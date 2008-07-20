@@ -2,7 +2,7 @@
 " File:        NERD_tree.vim
 " Description: vim global plugin that provides a nice tree explorer
 " Maintainer:  Martin Grenfell <martin_grenfell at msn dot com>
-" Last Change: 5 July, 2008
+" Last Change: 20 July, 2008
 " License:     This program is free software. It comes without any warranty,
 "              to the extent permitted by applicable law. You can redistribute
 "              it and/or modify it under the terms of the Do What The Fuck You
@@ -10,7 +10,7 @@
 "              See http://sam.zoy.org/wtfpl/COPYING for more details.
 "
 " ============================================================================
-let s:NERD_tree_version = '2.12.0'
+let s:NERD_tree_version = '2.13.0'
 
 " SECTION: Script init stuff {{{1
 "============================================================
@@ -45,7 +45,7 @@ call s:InitVariable("g:NERDChristmasTree", 1)
 call s:InitVariable("g:NERDTreeAutoCenter", 1)
 call s:InitVariable("g:NERDTreeAutoCenterThreshold", 3)
 call s:InitVariable("g:NERDTreeCaseSensitiveSort", 0)
-call s:InitVariable("g:NERDTreeChDirMode", 1)
+call s:InitVariable("g:NERDTreeChDirMode", 0)
 if !exists("g:NERDTreeIgnore")
     let g:NERDTreeIgnore = ['\~$']
 endif
@@ -148,7 +148,7 @@ command! -n=1 -complete=customlist,s:CompleteBookmarks NERDTreeFromBookmark call
 "Save the cursor position whenever we close the nerd tree
 exec "autocmd BufWinLeave *". s:NERDTreeWinName ."* :call <SID>SaveScreenState()"
 "cache bookmarks when vim loads
-autocmd VimEnter * call s:oBookmark.CacheBookmarks()
+autocmd VimEnter * call s:oBookmark.CacheBookmarks(0)
 
 "SECTION: Classes {{{1
 "============================================================
@@ -177,6 +177,17 @@ function! s:oBookmark.Bookmarks() dict
     endif
     return g:NERDTreeBookmarks
 endfunction
+" Function: oBookmark.BookmarkExistsFor(name)   {{{3
+" class method that returns 1 if a bookmark with the given name is found, 0
+" otherwise
+function! s:oBookmark.BookmarkExistsFor(name) dict
+    try
+        call s:oBookmark.BookmarkFor(a:name)
+        return 1
+    catch /NERDTree.BookmarkNotFound/
+        return 0
+    endtry
+endfunction
 " Function: oBookmark.BookmarkFor(name)   {{{3
 " Class method to get the bookmark that has the given name. {} is return if no
 " bookmark is found
@@ -186,7 +197,7 @@ function! s:oBookmark.BookmarkFor(name) dict
             return i
         endif
     endfor
-    return {}
+    throw "NERDTree.BookmarkNotFound exception: no bookmark found for name: \"". a:name  .'"'
 endfunction
 " Function: oBookmark.BookmarkNames()   {{{3
 " Class method to return an array of all bookmark names
@@ -197,30 +208,42 @@ function! s:oBookmark.BookmarkNames() dict
     endfor
     return names
 endfunction
-" FUNCTION: oBookmark.CacheBookmarks() {{{3
+" FUNCTION: oBookmark.CacheBookmarks(silent) {{{3
 " Class method to read all bookmarks from the bookmarks file intialize
 " bookmark objects for each one.
-function! s:oBookmark.CacheBookmarks() dict
+"
+" Args:
+" silent - dont echo an error msg if invalid bookmarks are found
+function! s:oBookmark.CacheBookmarks(silent) dict
     if filereadable(g:NERDTreeBookmarksFile)
-        let bookmarks = []
+        let g:NERDTreeBookmarks = []
+        let g:NERDTreeInvalidBookmarks = []
         let bookmarkStrings = readfile(g:NERDTreeBookmarksFile)
         let invalidBookmarksFound = 0
         for i in bookmarkStrings
-            let name = substitute(i, '^\(.\{-}\) .*$', '\1', '')
-            let path = substitute(i, '^.\{-} \(.*\)$', '\1', '')
 
-            try
-                let bookmark = s:oBookmark.New(name, s:oPath.New(path))
-                call add(bookmarks, bookmark)
-            catch /NERDTree.Path.InvalidArguments/
-                let invalidBookmarksFound += 1
-            endtry
+            "ignore blank lines
+            if i != ''
+
+                let name = substitute(i, '^\(.\{-}\) .*$', '\1', '')
+                let path = substitute(i, '^.\{-} \(.*\)$', '\1', '')
+
+                try
+                    let bookmark = s:oBookmark.New(name, s:oPath.New(path))
+                    call add(g:NERDTreeBookmarks, bookmark)
+                catch /NERDTree.Path.InvalidArguments/
+                    call add(g:NERDTreeInvalidBookmarks, i)
+                    let invalidBookmarksFound += 1
+                endtry
+            endif
         endfor
-        let g:NERDTreeBookmarks = bookmarks
         if invalidBookmarksFound
-            call s:Echo(invalidBookmarksFound . " invalid bookmarks were read and discarded")
             call s:oBookmark.Write()
+            if !a:silent
+                call s:Echo(invalidBookmarksFound . " invalid bookmarks were read. See :help NERDTreeInvalidBookmarks for info.")
+            endif
         endif
+        call s:oBookmark.Sort()
     endif
 endfunction
 " FUNCTION: oBookmark.CompareTo(otherbookmark) {{{3
@@ -249,6 +272,7 @@ function! s:oBookmark.Delete() dict
     if !empty(node)
         call node.path.CacheDisplayString()
     endif
+    call s:oBookmark.Write()
 endfunction
 " FUNCTION: oBookmark.GetNode(searchFromAbsoluteRoot) {{{3
 " Gets the treenode for this bookmark
@@ -260,7 +284,7 @@ function! s:oBookmark.GetNode(searchFromAbsoluteRoot) dict
     let searchRoot = a:searchFromAbsoluteRoot ? s:AbsoluteTreeRoot() : t:NERDTreeRoot
     let targetNode = searchRoot.FindNode(self.path)
     if empty(targetNode)
-        throw "NERDTree.BookmarkNotFound no node was found for bookmark: " . self.name
+        throw "NERDTree.BookmarkedNodeNotFound no node was found for bookmark: " . self.name
     endif
     return targetNode
 endfunction
@@ -269,10 +293,24 @@ endfunction
 " treenode for it.
 function! s:oBookmark.GetNodeForName(name, searchFromAbsoluteRoot) dict
     let bookmark = s:oBookmark.BookmarkFor(a:name)
-    if bookmark == {}
-        throw "NERDTree.BookmarkNotFound no node was found for bookmark: " . a:name
-    endif
     return bookmark.GetNode(a:searchFromAbsoluteRoot)
+endfunction
+" Function: oBookmark.InvalidBookmarks()   {{{3
+" Class method to get all invalid bookmark strings read from the bookmarks
+" file
+function! s:oBookmark.InvalidBookmarks() dict
+    if !exists("g:NERDTreeInvalidBookmarks")
+        let g:NERDTreeInvalidBookmarks = []
+    endif
+    return g:NERDTreeInvalidBookmarks
+endfunction
+" FUNCTION: oBookmark.MustExist() {{{3
+function! s:oBookmark.MustExist() dict
+    if !self.path.Exists()
+        call s:oBookmark.CacheBookmarks(1)
+        throw "NERDTree.BookmarkPointsToInvalidLocation exception: the bookmark \"".
+            \ self.name ."\" points to a non existing location: \"". self.path.StrForOS(0)
+    endif
 endfunction
 " FUNCTION: oBookmark.New(name, path) {{{3
 " Create a new bookmark object with the given name and path object
@@ -285,6 +323,11 @@ function! s:oBookmark.New(name, path) dict
     let newBookmark.name = a:name
     let newBookmark.path = a:path
     return newBookmark
+endfunction
+" Function: oBookmark.SetPath(path)   {{{3
+" makes this bookmark point to the given path
+function! s:oBookmark.SetPath(path) dict
+    let self.path = a:path
 endfunction
 " Function: oBookmark.Sort()   {{{3
 " Class method that sorts all bookmarks
@@ -312,6 +355,13 @@ function! s:oBookmark.Write() dict
     let bookmarkStrings = []
     for i in s:oBookmark.Bookmarks()
         call add(bookmarkStrings, i.name . ' ' . i.path.StrForOS(0))
+    endfor
+
+    "add a blank line before the invalid ones
+    call add(bookmarkStrings, "")
+
+    for j in s:oBookmark.InvalidBookmarks()
+        call add(bookmarkStrings, j)
     endfor
     call writefile(bookmarkStrings, g:NERDTreeBookmarksFile)
 endfunction
@@ -541,6 +591,7 @@ function! s:oTreeFileNode.Rename(newName) dict
 
     if newParent != {}
         call newParent.CreateChild(self.path, 1)
+        call newParent.Refresh()
     endif
 endfunction
 "FUNCTION: oTreeFileNode.StrDisplay() {{{3
@@ -796,8 +847,8 @@ function! s:oTreeDirNode.InitChildren(silent) dict
             try
                 let path = s:oPath.New(i)
                 call self.CreateChild(path, 0)
-            catch /^NERDTree.Path.InvalidArguments/
-                let invalidFilesFound = 1
+            catch /^NERDTree.Path.\(InvalidArguments\|InvalidFiletype\)/
+                let invalidFilesFound += 1
             endtry
         endif
     endfor
@@ -809,7 +860,7 @@ function! s:oTreeDirNode.InitChildren(silent) dict
     endif
 
     if invalidFilesFound
-        call s:EchoWarning("some files could not be loaded into the NERD tree")
+        call s:EchoWarning(invalidFilesFound . " file(s) could not be loaded into the NERD tree")
     endif
     return self.GetChildCount()
 endfunction
@@ -990,7 +1041,7 @@ endfunction
 let s:oPath = {}
 "FUNCTION: oPath.BookmarkNames() {{{3
 function! s:oPath.BookmarkNames() dict
-    if !exists("self.bookmark")
+    if !exists("self.bookmarkNames")
         call self.CacheDisplayString()
     endif
     return self.bookmarkNames
@@ -1003,14 +1054,14 @@ function! s:oPath.CacheDisplayString() dict
         let self.cachedDisplayString = self.cachedDisplayString . '*'
     endif
 
-    let bookmarkNames = []
+    let self.bookmarkNames = []
     for i in s:oBookmark.Bookmarks()
         if i.path.Equals(self)
-            call add(bookmarkNames, i.name)
+            call add(self.bookmarkNames, i.name)
         endif
     endfor
-    if !empty(bookmarkNames)
-        let self.cachedDisplayString .= ' {' . join(bookmarkNames) . '}'
+    if !empty(self.bookmarkNames)
+        let self.cachedDisplayString .= ' {' . join(self.bookmarkNames) . '}'
     endif
 
     if self.isSymLink
@@ -1196,6 +1247,12 @@ function! s:oPath.Delete() dict
             throw "NERDTree.Path.Deletion Exception: Could not delete file: '" . self.Str(0) . "'"
         endif
     endif
+
+    "delete all bookmarks for this path
+    for i in self.BookmarkNames()
+        let bookmark = s:oBookmark.BookmarkFor(i)
+        call bookmark.Delete()
+    endfor
 endfunction
 
 "FUNCTION: oPath.ExtractDriveLetter(fullpath) {{{3
@@ -1208,6 +1265,11 @@ function! s:oPath.ExtractDriveLetter(fullpath) dict
         let self.drive = ''
     endif
 
+endfunction
+"FUNCTION: oPath.Exists() {{{3
+"return 1 if this path points to a location that is readable or is a directory
+function! s:oPath.Exists() dict
+    return filereadable(self.StrForOS(0)) || isdirectory(self.StrForOS(0))
 endfunction
 "FUNCTION: oPath.GetDir() {{{3
 "
@@ -1340,7 +1402,12 @@ function! s:oPath.ReadInfoFromDisk(fullpath) dict
 
     let fullpath = s:oPath.WinToUnixPath(a:fullpath)
 
+    if getftype(fullpath) == "fifo"
+        throw "NERDTree.Path.InvalidFiletype Exception: Cant handle FIFO files: " . a:fullpath
+    endif
+
     let self.pathSegments = split(fullpath, '/')
+
 
     let self.isReadOnly = 0
     if isdirectory(a:fullpath)
@@ -1400,6 +1467,12 @@ function! s:oPath.Rename(newPath) dict
         throw "NERDTree.Path.Rename Exception: Could not rename: '" . self.StrForOS(0) . "'" . 'to:' . a:newPath
     endif
     call self.ReadInfoFromDisk(a:newPath)
+
+    for i in self.BookmarkNames()
+        let b = s:oBookmark.BookmarkFor(i)
+        call b.SetPath(copy(self))
+    endfor
+    call s:oBookmark.Write()
 endfunction
 
 "FUNCTION: oPath.Str(esc) {{{3
@@ -1607,7 +1680,7 @@ endfunction
 "name: the name of a bookmark or a directory
 function! s:InitNerdTree(name)
     let path = {}
-    if s:oBookmark.BookmarkFor(a:name) != {}
+    if s:oBookmark.BookmarkExistsFor(a:name)
         let path = s:oBookmark.BookmarkFor(a:name).path
     else
         let dir = a:name == '' ? expand('%:p:h') : a:name
@@ -1697,6 +1770,21 @@ endfunction
 
 " SECTION: View Functions {{{1
 "============================================================
+" FUNCTION: s:BookmarkToRoot(name) {{{2
+" Make the node for the given bookmark the new tree root
+function! s:BookmarkToRoot(name)
+    let bookmark = s:oBookmark.BookmarkFor(a:name)
+    if s:ValidateBookmark(bookmark)
+        try
+            let targetNode = s:oBookmark.GetNodeForName(a:name, 1)
+        catch /NERDTree.BookmarkedNodeNotFound/
+            let targetNode = s:oTreeFileNode.New(s:oBookmark.BookmarkFor(a:name).path)
+        endtry
+        call targetNode.MakeRoot()
+        call s:RenderView()
+        call s:PutCursorOnNode(targetNode, 0, 0)
+    endif
+endfunction
 "FUNCTION: s:CenterView() {{{2
 "centers the nerd tree window around the cursor (provided the nerd tree
 "options permit)
@@ -1709,13 +1797,6 @@ function! s:CenterView()
             normal! zz
         endif
     endif
-endfunction
-"FUNCTION: s:CloseTreeIfOpen() {{{2
-"Closes the NERD tree window if it is open
-function! s:CloseTreeIfOpen()
-   if s:IsTreeOpen()
-      call s:CloseTree()
-   endif
 endfunction
 "FUNCTION: s:CloseTree() {{{2
 "Closes the NERD tree window
@@ -1733,6 +1814,20 @@ function! s:CloseTree()
     endif
 endfunction
 
+"FUNCTION: s:CloseTreeIfOpen() {{{2
+"Closes the NERD tree window if it is open
+function! s:CloseTreeIfOpen()
+   if s:IsTreeOpen()
+      call s:CloseTree()
+   endif
+endfunction
+"FUNCTION: s:CloseTreeIfQuitOnOpen() {{{2
+"Closes the NERD tree window if the close on open option is set
+function! s:CloseTreeIfQuitOnOpen()
+    if g:NERDTreeQuitOnOpen
+        call s:CloseTree()
+    endif
+endfunction
 "FUNCTION: s:CreateTreeWin() {{{2
 "Inits the NERD tree window. ie. opens it, sizes it, sets all the local
 "options etc
@@ -2104,7 +2199,11 @@ function! s:GetSelectedBookmark()
     let line = getline(".")
     let name = substitute(line, '^>\(.\{-}\) \[.*\]$', '\1', '')
     if name != line
-        return s:oBookmark.BookmarkFor(name)
+        try
+            return s:oBookmark.BookmarkFor(name)
+        catch /NERDTree.BookmarkNotFound/
+            return {}
+        endtry
     endif
 endfunction
 
@@ -2222,7 +2321,7 @@ function! s:OpenFileNode(treenode)
     call s:PutCursorInTreeWin()
 
     "if the file is already open in this tab then just stick the cursor in it
-    let winnr = bufwinnr(a:treenode.path.StrForOS(0))
+    let winnr = bufwinnr('^' . a:treenode.path.StrForOS(0) . '$')
     if winnr != -1
         exec winnr . "wincmd w"
 
@@ -2354,6 +2453,25 @@ function! s:PromptToDelBuffer(bufnum, msg)
     if nr2char(getchar()) == 'y'
         exec "silent bdelete! " . a:bufnum
     endif
+endfunction
+
+"FUNCTION: s:PutCursorOnBookmarkTable(){{{2
+"Places the cursor at the top of the bookmarks table
+function! s:PutCursorOnBookmarkTable()
+    if !t:NERDTreeShowBookmarks
+        throw "NERDTree.IllegalOperation exception: cant find bookmark table, bookmarks arent active"
+    endif
+
+    let rootNodeLine = s:FindRootNodeLineNumber()
+
+    let line = 1
+    while getline(line) !~ '^>-\+Bookmarks-\+$'
+        let line = line + 1
+        if line >= rootNodeLine
+            throw "NERDTree.BookmarkTableNotFound exception: didnt find the bookmarks table"
+        endif
+    endwhile
+    call cursor(line, 0)
 endfunction
 
 "FUNCTION: s:PutCursorOnNode(treenode, isJump, recurseUpward){{{2
@@ -2696,12 +2814,27 @@ function! s:Toggle(dir)
         call s:InitNerdTree(a:dir)
     endif
 endfunction
+
+"FUNCTION: s:ValidateBookmark(bookmark) {{{2
+function! s:ValidateBookmark(bookmark)
+    try
+        call a:bookmark.MustExist()
+        return 1
+    catch /NERDTree.BookmarkPointsToInvalidLocation/
+        call s:RenderView()
+        call s:Echo(a:bookmark.name . "now points to an invalid location. See :help NERDTreeInvalidBookmarks for info.")
+    endtry
+endfunction
+
 "SECTION: Interface bindings {{{1
 "============================================================
-"FUNCTION: s:ActivateNode() {{{2
+"FUNCTION: s:ActivateNode(forceKeepWindowOpen) {{{2
 "If the current node is a file, open it in the previous window (or a new one
 "if the previous is modified). If it is a directory then it is opened.
-function! s:ActivateNode()
+"
+"args:
+"forceKeepWindowOpen - dont close the window even if NERDTreeQuitOnOpen is set
+function! s:ActivateNode(forceKeepWindowOpen)
     if getline(".") == s:tree_up_dir_line
         return s:UpDir(0)
     endif
@@ -2714,9 +2847,9 @@ function! s:ActivateNode()
             call s:PutCursorOnNode(treenode, 0, 0)
         else
             call s:OpenFileNode(treenode)
-            if g:NERDTreeQuitOnOpen
-                call s:CloseTree()
-            endif
+            if !a:forceKeepWindowOpen
+                call s:CloseTreeIfQuitOnOpen()
+            end
         endif
     else
         let bookmark = s:GetSelectedBookmark()
@@ -2724,7 +2857,9 @@ function! s:ActivateNode()
             if bookmark.path.isDirectory
                 call s:BookmarkToRoot(bookmark.name)
             else
-                call s:OpenFileNode(s:oTreeFileNode.New(bookmark.path))
+                if s:ValidateBookmark(bookmark)
+                    call s:OpenFileNode(s:oTreeFileNode.New(bookmark.path))
+                endif
             endif
         endif
     endif
@@ -2735,10 +2870,10 @@ function! s:BindMappings()
     " set up mappings and commands for this buffer
     nnoremap <silent> <buffer> <middlerelease> :call <SID>HandleMiddleMouse()<cr>
     nnoremap <silent> <buffer> <leftrelease> <leftrelease>:call <SID>CheckForActivate()<cr>
-    nnoremap <silent> <buffer> <2-leftmouse> :call <SID>ActivateNode()<cr>
+    nnoremap <silent> <buffer> <2-leftmouse> :call <SID>ActivateNode(0)<cr>
 
-    exec "nnoremap <silent> <buffer> ". g:NERDTreeMapActivateNode . " :call <SID>ActivateNode()<cr>"
-    exec "nnoremap <silent> <buffer> ". g:NERDTreeMapOpenSplit ." :call <SID>OpenEntrySplit()<cr>"
+    exec "nnoremap <silent> <buffer> ". g:NERDTreeMapActivateNode . " :call <SID>ActivateNode(0)<cr>"
+    exec "nnoremap <silent> <buffer> ". g:NERDTreeMapOpenSplit ." :call <SID>OpenEntrySplit(0)<cr>"
 
     exec "nnoremap <silent> <buffer> ". g:NERDTreeMapPreview ." :call <SID>PreviewNode(0)<cr>"
     exec "nnoremap <silent> <buffer> ". g:NERDTreeMapPreviewSplit ." :call <SID>PreviewNode(1)<cr>"
@@ -2788,7 +2923,7 @@ function! s:BindMappings()
     command! -buffer -complete=customlist,s:CompleteBookmarks -nargs=* ClearBookmarks call <SID>ClearBookmarks('<args>')
     command! -buffer -complete=customlist,s:CompleteBookmarks -nargs=+ BookmarkToRoot call <SID>BookmarkToRoot('<args>')
     command! -buffer -nargs=0 ClearAllBookmarks call s:oBookmark.ClearAll() <bar> call <SID>RenderView()
-    command! -buffer -nargs=0 ReadBookmarks call s:oBookmark.CacheBookmarks() <bar> call <SID>RenderView()
+    command! -buffer -nargs=0 ReadBookmarks call s:oBookmark.CacheBookmarks(0) <bar> call <SID>RenderView()
     command! -buffer -nargs=0 WriteBookmarks call s:oBookmark.Write()
 endfunction
 
@@ -2807,18 +2942,6 @@ function! s:BookmarkNode(name)
         call s:Echo("select a node first")
     endif
 endfunction
-" FUNCTION: s:BookmarkToRoot(name) {{{2
-" Make the node for the given bookmark the new tree root
-function! s:BookmarkToRoot(name)
-    try
-        let targetNode = s:oBookmark.GetNodeForName(a:name, 1)
-    catch /NERDTree.BookmarkNotFound/
-        let targetNode = s:oTreeFileNode.New(s:oBookmark.BookmarkFor(a:name).path)
-    endtry
-    call targetNode.MakeRoot()
-    call s:RenderView()
-    call s:PutCursorOnNode(targetNode, 0, 0)
-endfunction
 "FUNCTION: s:CheckForActivate() {{{2
 "Checks if the click should open the current node, if so then activate() is
 "called (directories are automatically opened if the symbol beside them is
@@ -2834,14 +2957,14 @@ function! s:CheckForActivate()
         if currentNode.path.isDirectory
             let reg = '^' . s:tree_markup_reg .'*[~+]$'
             if startToCur =~ reg
-                call s:ActivateNode()
+                call s:ActivateNode(0)
                 return
             endif
         endif
 
         if (g:NERDTreeMouseMode == 2 && currentNode.path.isDirectory) || g:NERDTreeMouseMode == 3
             if char !~ s:tree_markup_reg && startToCur !~ '\/$'
-                call s:ActivateNode()
+                call s:ActivateNode(0)
                 return
             endif
         endif
@@ -2890,7 +3013,6 @@ function! s:ClearBookmarks(bookmarks)
             call bookmark.Delete()
         endfor
     endif
-    call s:oBookmark.Write()
     call s:RenderView()
 endfunction
 " FUNCTION: s:CloseChildren() {{{2
@@ -3054,7 +3176,7 @@ function! s:HandleMiddleMouse()
     if curNode.path.isDirectory
         call s:OpenExplorer()
     else
-        call s:OpenEntrySplit()
+        call s:OpenEntrySplit(0)
     endif
 endfunction
 
@@ -3155,7 +3277,7 @@ function! s:OpenBookmark(name)
         let targetNode = s:oBookmark.GetNodeForName(a:name, 0)
         call s:PutCursorOnNode(targetNode, 0, 1)
         redraw!
-    catch /NERDTree.BookmarkNotFound/
+    catch /NERDTree.BookmarkedNodeNotFound/
         call s:Echo("note - target node is not cached")
         let bookmark = s:oBookmark.BookmarkFor(a:name)
         let targetNode = s:oTreeFileNode.New(bookmark.path)
@@ -3166,15 +3288,18 @@ function! s:OpenBookmark(name)
         call s:OpenFileNode(targetNode)
     endif
 endfunction
-" FUNCTION: s:OpenEntrySplit() {{{2
-" Opens the currently selected file from the explorer in a
-" new window
-function! s:OpenEntrySplit()
+" FUNCTION: s:OpenEntrySplit(forceKeepWindowOpen) {{{2
+"Opens the currently selected file from the explorer in a
+"new window
+"
+"args:
+"forceKeepWindowOpen - dont close the window even if NERDTreeQuitOnOpen is set
+function! s:OpenEntrySplit(forceKeepWindowOpen)
     let treenode = s:GetSelectedNode()
     if treenode != {}
         call s:OpenFileNodeSplit(treenode)
-        if g:NERDTreeQuitOnOpen
-            call s:CloseTree()
+        if !a:forceKeepWindowOpen
+            call s:CloseTreeIfQuitOnOpen()
         endif
     else
         call s:Echo("select a node first")
@@ -3201,22 +3326,25 @@ function! s:OpenInNewTab(stayCurrentTab)
 
     let treenode = s:GetSelectedNode()
     if treenode != {}
-        exec "tabedit " . treenode.path.StrForEditCmd()
-        if a:stayCurrentTab
-            exec "tabnext " . currentTab
+        if treenode.path.isDirectory
+            tabnew
+            call s:InitNerdTree(treenode.path.StrForOS(0))
+        else
+            exec "tabedit " . treenode.path.StrForEditCmd()
         endif
     else
         let bookmark = s:GetSelectedBookmark()
         if bookmark != {}
             if bookmark.path.isDirectory
-                exec "tabnew +NERDTreeFromBookmark\\ " . bookmark.name
+                tabnew
+                call s:InitNerdTree(bookmark.name)
             else
                 exec "tabedit " . bookmark.path.StrForEditCmd()
             endif
-            if a:stayCurrentTab
-                exec "tabnext " . currentTab
-            endif
         endif
+    endif
+    if a:stayCurrentTab
+        exec "tabnext " . currentTab
     endif
 endfunction
 
@@ -3237,16 +3365,10 @@ endfunction
 
 "FUNCTION: s:PreviewNode() {{{2
 function! s:PreviewNode(openNewWin)
-    let treenode = s:GetSelectedNode()
-    if treenode == {} || treenode.path.isDirectory
-        call s:Echo("Select a file node first" )
-        return
-    endif
-
     if a:openNewWin
-        call s:OpenEntrySplit()
+        call s:OpenEntrySplit(1)
     else
-        call s:ActivateNode()
+        call s:ActivateNode(1)
     end
     call s:PutCursorInTreeWin()
 endfunction
@@ -3375,7 +3497,12 @@ endfunction
 " toggles the display of bookmarks
 function! s:ToggleShowBookmarks()
     let t:NERDTreeShowBookmarks = !t:NERDTreeShowBookmarks
-    call s:RenderViewSavingPosition()
+    if t:NERDTreeShowBookmarks
+        call s:RenderView()
+        call s:PutCursorOnBookmarkTable()
+    else
+        call s:RenderViewSavingPosition()
+    endif
     call s:CenterView()
 endfunction
 " FUNCTION: s:ToggleShowFiles() {{{2
