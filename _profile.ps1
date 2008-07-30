@@ -103,6 +103,10 @@ function webdev($path,$port=8080,$vpath='/') {
     "Started WebDev Server for '$path' directory on port $port"
 }
 
+# start gitk, which requires bash for whatever reason
+function gitk {
+   bash "$TOOLS\git\bin\gitk"
+}
 
 ###############################################################################
 # aliases
