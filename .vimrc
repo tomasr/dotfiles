@@ -134,6 +134,11 @@ let html_no_pre = 1
 let use_xhtml = 1
 
 "
+" Configure syntax specific options
+"
+let python_highlight_all = 1
+
+"
 " Enable spellchecking conditionally
 "
 map <Leader>se :setlocal spell spelllang=en_us<CR>
