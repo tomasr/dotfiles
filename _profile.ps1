@@ -103,9 +103,14 @@ function webdev($path,$port=8080,$vpath='/') {
     "Started WebDev Server for '$path' directory on port $port"
 }
 
-# start gitk, which requires bash for whatever reason
+# start gitk without having to go through bash first
 function gitk {
-   bash "$TOOLS\git\bin\gitk"
+   wish "$TOOLS\git\bin\gitk"
+}
+
+# uuidgen.exe replacement
+function uuidgen {
+   [guid]::NewGuid().ToString('d')
 }
 
 ###############################################################################
