@@ -1,7 +1,7 @@
 ###############################################################################
 # Configures the .NET / Visual Studio / Windows SDK
 # Build environment. Loosely based on the SDK batch files.
-# 
+#
 # First it will try to set up the environment for .NET 3.5
 # and VS2008. Failing that, falls back to .NET 3.0/VS2005.
 ###############################################################################
@@ -12,21 +12,21 @@ $FX35 = "$NETFXDIR\v3.5"
 
 function script:append-path { 
    $env:PATH += ';' + $args
-} 
+}
 function script:append-lib {
    if ( test-path('Env:\LIB') ) {
       $env:LIB += ';' + $args
    } else {
       $env:LIB = $args
    }
-} 
+}
 function script:append-include { 
    if ( test-path('Env:\INCLUDE') ) {
       $env:INCLUDE += ';' + $args
    } else {
       $env:INCLUDE = $args
    }
-} 
+}
 function script:get-vsdir([string] $version) {
    $regpath = "HKLM:SOFTWARE\Microsoft\VisualStudio\$version"
    if ( test-path($regpath) ) {
@@ -41,7 +41,7 @@ function script:set-vsenv([string] $version) {
       append-path $VSDIR
       append-path "$VSDIR..\..\VC\bin"
       append-path "$VSDIR..\Tools"
-      
+
       append-include "$VSDIR..\..\VC\include"
       append-lib "$VSDIR..\..\VC\lib"
       return $true
@@ -53,6 +53,12 @@ function script:get-psdkdir {
    if ( test-path($regpath) ) {
       $regKey = get-itemproperty $regpath
       return $regkey.CurrentInstallFolder
+   }
+   # try the .NET framework SDK
+   $regpath = "HKLM:SOFTWARE\Microsoft\Microsoft SDKs\.NETFramework\v2.0"
+   if ( test-path($regpath) ) {
+      $regKey = get-itemproperty $regpath
+      return $regkey.InstallationFolder
    }
    return $null
 }
@@ -77,5 +83,6 @@ if ( test-path($FX35) ) {
 append-path $FX20
 [void] (set-vsenv "9.0")
 [void] (set-vsenv "8.0")
+
 
 
