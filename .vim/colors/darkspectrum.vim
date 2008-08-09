@@ -37,13 +37,13 @@ hi CursorColumn	guibg=#3e4446
 
 hi DiffAdd         guifg=#ffcc7f guibg=#a67429 gui=none
 hi DiffChange      guifg=#7fbdff guibg=#425c78 gui=none
-hi DiffText        guifg=#7fbdff guibg=#425c78 gui=none
-hi DiffDelete      guifg=#252723 guibg=#000000 gui=none
+hi DiffText        guifg=#8ae234 guibg=#4e9a06 gui=none
+"hi DiffDelete      guifg=#252723 guibg=#000000 gui=none
+hi DiffDelete      guifg=#000000 guibg=#000000 gui=none
 "hi ErrorMsg
 
 hi Number		guifg=#fce94f
 
-hi VertSplit	guibg=#eeeeec guifg=#000000 gui=none
 hi Folded		guibg=#000000 guifg=#FFFFFF gui=bold
 hi vimFold		guibg=#000000 guifg=#FFFFFF gui=bold
 hi FoldColumn	guibg=#000000 guifg=#FFFFFF gui=bold
@@ -52,12 +52,11 @@ hi LineNr		guifg=#555753 guibg=#000000
 hi NonText		guifg=#555753 guibg=#000000
 hi Folded		guifg=#555753 guibg=#000000 gui=bold
 hi FoldeColumn  guifg=#555753 guibg=#000000 gui=bold
-hi StatusLine   guifg=#555753 guibg=#000000 gui=bold
-hi StatusLineNC guifg=#555753 guibg=#000000 gui=none
-hi VertSplit    guifg=#555753 guibg=#000000 gui=bold
+"hi VertSplit	guibg=#ffffff guifg=#ffffff gui=none
+hi VertSplit	guibg=#c0c0c0 guifg=#c0c0c0 gui=none
 
 hi StatusLine   guifg=#000000 guibg=#ffffff gui=none
-hi StatusLineNC guifg=#000000 guibg=#aaaaaa gui=none
+hi StatusLineNC guifg=#000000 guibg=#C0C0C0 gui=none
 
 hi ModeMsg		guifg=#fce94f
 hi MoreMsg		guifg=#fce94f
@@ -85,6 +84,18 @@ hi Ignore		guifg=#555753
 hi Todo			guifg=#FFFFFF guibg=#ef5939 gui=bold
 hi Function		guifg=#ad7fa8
 
+"hi WildMenu     guibg=#2e3436 guifg=#ffffff gui=bold
+"hi WildMenu     guifg=#7fbdff guibg=#425c78 gui=none
+hi WildMenu     guifg=#ffffff guibg=#3465a4 gui=none
+
+hi Pmenu        guibg=#000000 guifg=#c0c0c0
+hi PmenuSel     guibg=#3465a4 guifg=#ffffff
+hi PmenuSbar    guibg=#222222 guifg=#222222
+hi PmenuThumb   guibg=#666666 guifg=#666666 
+
+hi cppSTLType   guifg=#729fcf gui=bold
+
+hi link cppSTL          Function
 hi link Error			Todo
 hi link Character		Number
 hi link rubySymbol		Number
