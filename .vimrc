@@ -6,10 +6,9 @@ source $VIMRUNTIME/mswin.vim
 " appearance options
 "
 if has("win32") || has("win64")
-   "set guifont=Envy\ Code\ R:h15
-   set guifont=DejaVu\ Sans\ Mono:h13
+   set guifont=Envy\ Code\ R:h13
 else
-   set guifont=DejaVu\ Sans\ Mono\ 15
+   set guifont=Envy\ Code\ R\ 16
 end
 set bg=dark
 
