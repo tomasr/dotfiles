@@ -10,13 +10,14 @@ ls ~\dotfiles | %{
          if ( $_.PSIsContainer ) {
             # try to unlink first
             linkd.exe "$HOME\$($_.Name)" /d
+         } else {
+            rm -r -force "~\$($_.Name)"
          }
-         rm -r -force "~\$($_.Name)"
       }
       if ( $_.PSIsContainer ) {
          linkd.exe "$HOME\$($_.Name)" $_.FullName
       } else {
-         ln.exe $_.FullName "$HOME\$($_.Name)"
+         fsutil hardlink create "$HOME\$($_.Name)" $_.FullName
       }
    }
 }
