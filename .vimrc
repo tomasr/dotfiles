@@ -7,6 +7,10 @@ source $VIMRUNTIME/mswin.vim
 "
 if has("win32") || has("win64")
    set guifont=Envy\ Code\ R:h13.5
+   set shell=powershell.exe
+   set shellcmdflag=-c
+   set shellpipe=>
+   set shellredir=>
 else
    set guifont=Envy\ Code\ R\ 16
 end
