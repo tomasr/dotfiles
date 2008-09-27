@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:	Windows PowerShell
 " Maintainer:	Peter Provost <peter@provost.org>
-" Version: 2.6
+" Version: 2.7
 " Url: http://www.vim.org/scripts/script.php?script_id=1327
 " 
 " $LastChangedDate: 2007-03-05 21:18:39 -0800 (Mon, 05 Mar 2007) $
@@ -9,6 +9,7 @@
 "
 " Contributions by:
 " 	Jared Parsons <jaredp@beanseed.org>
+" 	Heath Stewart <heaths@microsoft.com>
 
 " Compatible VIM syntax file start
 if version < 600
@@ -20,9 +21,6 @@ endif
 " PowerShell doesn't care about case
 syn case ignore
 
-" support folding for blocks
-syntax region	psBlock		start="{" end="}" transparent fold
-
 " Sync-ing method
 syn sync minlines=100
 
@@ -32,8 +30,10 @@ syn match ps1Comment /#.*/ contains=ps1CommentTodo
 
 " Language keywords and elements
 syn keyword ps1Conditional if else elseif switch
-syn keyword ps1Repeat while foreach default for do until break continue
-syn keyword ps1Keyword return where filter in trap throw param
+syn keyword ps1Repeat while default for do until break continue
+syn match ps1Repeat /\<foreach\>/ nextgroup=ps1Cmdlet
+syn keyword ps1Keyword return filter in trap throw param begin process end
+syn match ps1Keyword /\<while\>/ nextgroup=ps1Cmdlet
 
 " Functions and Cmdlets
 syn match ps1Cmdlet /\w\+-\w\+/
@@ -41,7 +41,7 @@ syn keyword ps1Keyword function nextgroup=ps1Function skipwhite
 syn match ps1Function /\w\+-*\w*/ contained
 
 " Type declarations
-syn match ps1Type /\[[a-z0-9_:.]\+\]/
+syn match ps1Type /\[[a-z0-9_:.]\+\(\[\]\)\?\]/
 syn match ps1StandaloneType /[a-z0-9_.]\+/ contained
 syn keyword ps1Scope global local private script contained
 
@@ -70,7 +70,6 @@ syn region ps1String start=/@'$/ end=/^'@$/
 
 " Numbers
 syn match ps1Number /\<[0-9]\+/
-syn match ps1Number /\<0[xX]\x\+/
 
 " Setup default color highlighting
 if version >= 508 || !exists("did_ps1_syn_inits")
@@ -81,22 +80,24 @@ if version >= 508 || !exists("did_ps1_syn_inits")
     command -nargs=+ HiLink hi def link <args>
   endif
 
-  HiLink ps1String 						String
-	HiLink ps1Conditional 			Conditional
-	HiLink ps1Function					Function
-	HiLink ps1Variable					Identifier
-	HiLink ps1ScopedVariable		Identifier
-	HiLink ps1VariableName			Identifier
-	HiLink ps1Type							Type
-	HiLink ps1Scope							Type
-	HiLink ps1StandaloneType		Type
-	HiLink ps1Number 						Number
-	HiLink ps1Comment						Comment
-	HiLink ps1CommentTodo				Todo
-	HiLink ps1Operator 					Operator
-	HiLink ps1Repeat						Repeat
-	HiLink ps1Keyword						Keyword
-	HiLink ps1Cmdlet						Statement
+  HiLink ps1String String
+  HiLink ps1Conditional Conditional
+  HiLink ps1Function Function
+  HiLink ps1Variable Identifier
+  HiLink ps1ScopedVariable Identifier
+  HiLink ps1VariableName Identifier
+  HiLink ps1Type Type
+  HiLink ps1Scope Type
+  HiLink ps1StandaloneType Type
+  HiLink ps1Number Number
+  HiLink ps1Comment Comment
+  HiLink ps1CommentTodo Todo
+  HiLink ps1Operator Operator
+  HiLink ps1Repeat Repeat
+  HiLink ps1RepeatAndCmdlet Repeat
+  HiLink ps1Keyword Keyword
+  HiLink ps1KeywordAndCmdlet Keyword
+  HiLink ps1Cmdlet Statement
   delcommand HiLink
 endif
 

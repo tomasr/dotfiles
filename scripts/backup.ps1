@@ -6,7 +6,7 @@ function stars {
    return (new-object string ('*', 80))
 }
 
-$BASE = 'g:\backups'
+$BASE = 'm:\backups'
 $today = [datetime]::Today.ToString("yyyyMMdd");
 
 $dest = "$BASE\$today"
