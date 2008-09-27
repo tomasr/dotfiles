@@ -109,6 +109,7 @@ au BufNewFile,BufRead *.brail  setf xhtml
 au BufNewFile,BufRead *.rst  setf html
 au BufNewFile,BufRead *.rsb  setf xml
 au BufNewFile,BufRead *.io  setf io
+au BufNewFile,BufRead *.notes setf notes
 
 syntax on " syntax hilight on
 syntax sync fromstart 
