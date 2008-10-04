@@ -112,6 +112,10 @@ function gitk {
 function uuidgen {
    [guid]::NewGuid().ToString('d')
 }
+# get our own process information
+function get-myprocess {
+   [diagnostics.process]::GetCurrentProcess()
+}
 
 ###############################################################################
 # aliases
