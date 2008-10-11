@@ -127,6 +127,4 @@ set-alias ss select-string
 ###############################################################################
 # Other environment configurations
 ###############################################################################
-# enable PowerTab
-#`& "$TOOLS\powertab\Init-TabExpansion.ps1" -ConfigurationLocation $HOME 
 set-location $HOME
