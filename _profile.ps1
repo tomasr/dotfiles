@@ -74,7 +74,7 @@ function to-hex([long] $dec) {
 }
 # open explorer in this directory
 function exp([string] $loc = '.') {
-   explorer $loc
+   explorer "/e,"$loc""
 }
 # return all IP addresses
 function get-ips() {
