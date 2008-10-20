@@ -268,7 +268,7 @@ function! Cream_unindent(mode)
 endfunction
 
 "
-" Status line configuration gotten from: XXXXX
+" Status line configuration gotten from: http://rgarciasuarez.free.fr/dotfiles/vimrc
 "
 set ls=2 " Always show status line
 if has('statusline')
