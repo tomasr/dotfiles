@@ -6,28 +6,24 @@
 # and VS2008. Failing that, falls back to .NET 3.0/VS2005.
 ###############################################################################
 
-$NETFXDIR = "$env:WINDIR\Microsoft.NET\Framework"
-$FX20 = "$NETFXDIR\v2.0.50727"
-$FX35 = "$NETFXDIR\v3.5"
+$global:NETFXDIR = "$env:WINDIR\Microsoft.NET\Framework"
+$global:FX20 = "$NETFXDIR\v2.0.50727"
+$global:FX35 = "$NETFXDIR\v3.5"
+$global:LIBDIRS = @()
+$global:DEVPATHS = @()
+$global:INCDIRS = @()
 
-function script:append-path { 
-   $env:PATH += ';' + $args
+
+function add-path {
+   $global:DEVPATHS = $global:DEVPATHS + $args
 }
-function script:append-lib {
-   if ( test-path('Env:\LIB') ) {
-      $env:LIB += ';' + $args
-   } else {
-      $env:LIB = $args
-   }
+function append-lib {
+   $global:LIBDIRS = $global:LIBDIRS + $args
 }
-function script:append-include { 
-   if ( test-path('Env:\INCLUDE') ) {
-      $env:INCLUDE += ';' + $args
-   } else {
-      $env:INCLUDE = $args
-   }
+function append-include {
+   $global:INCDIRS = $global:INCDIRS + $args
 }
-function script:get-vsdir([string] $version) {
+function get-vsdir([string] $version) {
    $regpath = "HKLM:SOFTWARE\Microsoft\VisualStudio\$version"
    if ( test-path($regpath) ) {
       $regKey = get-itemproperty $regpath
@@ -35,12 +31,12 @@ function script:get-vsdir([string] $version) {
    }
    return $null
 }
-function script:set-vsenv([string] $version) {
+function set-vsenv([string] $version) {
    $VSDIR = (get-vsdir $version)
    if ( $VSDIR -ne $null ) {
-      append-path $VSDIR
-      append-path "$VSDIR..\..\VC\bin"
-      append-path "$VSDIR..\Tools"
+      add-path $VSDIR
+      add-path "$VSDIR..\..\VC\bin"
+      add-path "$VSDIR..\Tools"
 
       append-include "$VSDIR..\..\VC\include"
       append-lib "$VSDIR..\..\VC\lib"
@@ -48,7 +44,7 @@ function script:set-vsenv([string] $version) {
    }
    return $false
 }
-function script:get-psdkdir {
+function get-psdkdir {
    $regpath = "HKLM:SOFTWARE\Microsoft\Microsoft SDKs\Windows\"
    if ( test-path($regpath) ) {
       $regKey = get-itemproperty $regpath
@@ -62,10 +58,10 @@ function script:get-psdkdir {
    }
    return $null
 }
-function script:set-psdkenv {
+function set-psdkenv {
    $sdkdir = (get-psdkdir)
    if ( ($sdkdir -ne $null) -and (test-path $sdkdir) ) {
-      append-path "$sdkdir\bin"
+      add-path "$sdkdir\bin"
       if ( test-path "$sdkdir\include" ) { 
          append-include "$sdkdir\include" 
       }
@@ -74,15 +70,30 @@ function script:set-psdkenv {
       }
    }
 }
+function script:join($values) {
+   [string]::join(';', $values)
+}
 
+function set-devenv($vsVersion, $sdkVersion) {
+   if ( $sdkVersion -ne $null ) {
+      [void] (set-psdkenv $sdkVersion)
+   }
+   if ( $vsVersion -ne $null ) {
+      [void] (set-vsenv $vsVersion)
+   }
+}
+
+#set-devenv '' 'v6.0A'
 set-psdkenv
 # if .NET 3.5 is installed, default to that, otherwise use 2.0
 if ( test-path($FX35) ) {
-   append-path $FX35
+   add-path $FX35
 }
-append-path $FX20
+add-path $FX20
 [void] (set-vsenv "9.0")
 [void] (set-vsenv "8.0")
 
-
+$env:LIB = join($global:LIBDIRS)
+$env:INCLUDE = join($global:INCDIRS)
+$env:PATH = $env:PATH + ';' + (join($global:DEVPATHS))
 

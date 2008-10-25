@@ -117,7 +117,12 @@ function uuidgen {
 function get-myprocess {
    [diagnostics.process]::GetCurrentProcess()
 }
-
+# remove .svn directories
+function remove-svn($path = '.') {
+   ls -r -fo $path | ?{ 
+      $_.PSIsContainer -and $_.Name -match '\.svn' 
+   } | rm -r -fo
+}
 ###############################################################################
 # aliases
 ###############################################################################

@@ -35,7 +35,7 @@ net stop cvslock >> $log
 #
 $objfiles = ('*.swp *.obj *.exe *.dll *.pdb *.pch *.idb *.ilk *.lib *.lck *.ncb *.plg *.tlb *.suo')
 $folders = ( 
-   ('e:\CVS', ''), 
+   ('e:\archive', ''), 
    ('e:\devdeo', ''),
    ('e:\git-data', ''),
    ('e:\home', '*.swp'),
@@ -53,7 +53,7 @@ $folders | %{
 #
 # backup our VPC data file
 #
-robocopy 'E:\vpc\' $dest 'datos.vhd' /NP >> $log
+robocopy 'f:\vpc_active\' $dest 'datos.vhd' /NP >> $log
 
 #
 # restart CVS services 
