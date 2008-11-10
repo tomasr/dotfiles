@@ -149,6 +149,12 @@ map <Leader>se :setlocal spell spelllang=en_us<CR>
 map <Leader>ss :setlocal spell spelllang=es_es<CR>
 map <Leader>sn :setlocal nospell<CR>
 
+"
+" Other stuff
+"
+runtime 'macros/matchit.vim'
+set wildmenu " menu on statusbar for command autocomplete
+
 " 
 " Configure tabs for the console version
 "
