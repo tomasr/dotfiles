@@ -110,6 +110,7 @@ au BufNewFile,BufRead *.rst  setf html
 au BufNewFile,BufRead *.rsb  setf xml
 au BufNewFile,BufRead *.io  setf io
 au BufNewFile,BufRead *.notes setf notes
+au BufNewFile,BufRead *.mg setf mg
 
 syntax on " syntax hilight on
 syntax sync fromstart 
