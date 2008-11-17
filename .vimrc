@@ -128,6 +128,7 @@ map <C-K><C-F> :Xmlpretty<CR>
 " Bind NERD_Tree plugin to a <Ctrl+E,Ctrl+E>
 "
 noremap <C-E><C-E> :NERDTree<CR>
+noremap <C-E><C-C> :NERDTreeClose<CR>
 
 "
 " Configure TOhtml command

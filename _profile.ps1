@@ -123,6 +123,10 @@ function remove-svn($path = '.') {
       $_.PSIsContainer -and $_.Name -match '\.svn' 
    } | rm -r -fo
 }
+# get the syntax of a cmdlet, even if we have no help for it
+function get-syntax([string] $cmdlet) {
+   get-command $cmdlet -syntax
+}
 ###############################################################################
 # aliases
 ###############################################################################
