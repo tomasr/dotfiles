@@ -1,5 +1,5 @@
 " ku - Support to do something
-" Version: 0.1.4
+" Version: 0.1.5
 " Copyright (C) 2008 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -137,6 +137,9 @@ let s:last_used_input_pattern = ''
 if !exists('g:ku_history_added_p')
   let g:ku_history_added_p = 'ku#_history_added_p'
 endif
+if !exists('g:ku_history_size')
+  let g:ku_history_size = 1000
+endif
 
 
 
@@ -255,11 +258,12 @@ endfunction
 
 
 function! s:ku_custom_action_4(source, action, source2, action2)  "{{{3
-  let action_table = s:api(a:source2, 'action_table')
+  let action_table = (a:source2 !=# 'common'
+  \                   ? s:api(a:source2, 'action_table')
+  \                   : s:default_action_table())
   let function2 = get(action_table, a:action2, 0)
   if function2 is 0
-    echoerr printf('No such action for %s/%s: %s',
-    \              a:type, a:source2, string(a:action2))
+    echoerr printf('No such action for %s: %s', a:source2, string(a:action2))
     return
   endif
 
@@ -339,8 +343,11 @@ function! ku#default_key_mappings(override_p)  "{{{2
   call s:ni_map(_, '<buffer> <C-i>', '<Plug>(ku-choose-an-action)')
   call s:ni_map(_, '<buffer> <C-j>', '<Plug>(ku-next-source)')
   call s:ni_map(_, '<buffer> <C-k>', '<Plug>(ku-previous-source)')
+  call s:ni_map(_, '<buffer> <Esc>l', '<Plug>(ku-history-source)')
   call s:ni_map(_, '<buffer> <Esc>j', '<Plug>(ku-newer-history)')
   call s:ni_map(_, '<buffer> <Esc>k', '<Plug>(ku-older-history)')
+  call s:ni_map(_, '<buffer> <Esc>J', '<Plug>(ku-newer-history-and-source)')
+  call s:ni_map(_, '<buffer> <Esc>K', '<Plug>(ku-older-history-and-source)')
   return
 endfunction
 
@@ -548,7 +555,7 @@ function! s:do(action_name)  "{{{2
     endif
   endif
 
-  call s:history_add(s:remove_prompt(s:last_user_input_raw))
+  call s:history_add(s:remove_prompt(s:last_user_input_raw), s:current_source)
   let s:last_used_source = s:current_source
   let s:last_used_input_pattern = s:last_user_input_raw
 
@@ -619,10 +626,16 @@ function! s:initialize_ku_buffer()  "{{{2
   \        :<C-u>call <SID>switch_current_source(1)<Return>
   nnoremap <buffer> <silent> <Plug>(ku-previous-source)
   \        :<C-u>call <SID>switch_current_source(-1)<Return>
+  nnoremap <buffer> <silent> <Plug>(ku-history-source)
+  \        :<C-u>call <SID>switch_current_source('*history*')<Return>
   nnoremap <buffer> <silent> <Plug>(ku-newer-history)
-  \        :<C-u>call <SID>recall_input_history(-1)<Return>
+  \        :<C-u>call <SID>recall_input_history(-1, 0)<Return>
   nnoremap <buffer> <silent> <Plug>(ku-older-history)
-  \        :<C-u>call <SID>recall_input_history(1)<Return>
+  \        :<C-u>call <SID>recall_input_history(1, 0)<Return>
+  nnoremap <buffer> <silent> <Plug>(ku-newer-history-and-source)
+  \        :<C-u>call <SID>recall_input_history(-1, !0)<Return>
+  nnoremap <buffer> <silent> <Plug>(ku-older-history-and-source)
+  \        :<C-u>call <SID>recall_input_history(1, !0)<Return>
 
   nnoremap <buffer> <Plug>(ku-%-enter-insert-mode)  a
   inoremap <buffer> <Plug>(ku-%-leave-insert-mode)  <Esc>
@@ -652,6 +665,11 @@ function! s:initialize_ku_buffer()  "{{{2
   \<Plug>(ku-%-leave-insert-mode)
   \<Plug>(ku-previous-source)
   \<Plug>(ku-%-enter-insert-mode)
+  imap <buffer> <silent> <Plug>(ku-history-source)
+  \    <Plug>(ku-%-cancel-completion)
+  \<Plug>(ku-%-leave-insert-mode)
+  \<Plug>(ku-history-source)
+  \<Plug>(ku-%-enter-insert-mode)
   imap <buffer> <silent> <Plug>(ku-newer-history)
   \    <Plug>(ku-%-cancel-completion)
   \<Plug>(ku-%-leave-insert-mode)
@@ -661,6 +679,16 @@ function! s:initialize_ku_buffer()  "{{{2
   \    <Plug>(ku-%-cancel-completion)
   \<Plug>(ku-%-leave-insert-mode)
   \<Plug>(ku-older-history)
+  \<Plug>(ku-%-enter-insert-mode)
+  imap <buffer> <silent> <Plug>(ku-newer-history-and-source)
+  \    <Plug>(ku-%-cancel-completion)
+  \<Plug>(ku-%-leave-insert-mode)
+  \<Plug>(ku-newer-history-and-source)
+  \<Plug>(ku-%-enter-insert-mode)
+  imap <buffer> <silent> <Plug>(ku-older-history-and-source)
+  \    <Plug>(ku-%-cancel-completion)
+  \<Plug>(ku-%-leave-insert-mode)
+  \<Plug>(ku-older-history-and-source)
   \<Plug>(ku-%-enter-insert-mode)
 
   inoremap <buffer> <expr> <BS>  pumvisible() ? '<C-e><BS>' : '<BS>'
@@ -686,7 +714,21 @@ function! s:on_CursorMovedI()  "{{{2
   let c0 = col('.')
   call setline(1, '')
   let c1 = col('.')
-  call setline(1, 'Source: ' . s:current_source)
+  if s:current_hisotry_index == -1
+    call setline(1, printf('Source: %s', s:current_source))
+  else
+    let old_source = ku#input_history()[s:current_hisotry_index].source
+    if s:current_source ==# old_source
+      let _ = ''
+    else
+      let _ = printf(' (was %s)', old_source)
+    endif
+    call setline(1, printf('Source: %s (%d/%d)%s',
+    \                      s:current_source,
+    \                      s:current_hisotry_index + 1,
+    \                      len(ku#input_history()),
+    \                      _))
+  endif
 
   " The order of these conditions are important.
   let line = getline('.')
@@ -749,7 +791,7 @@ endfunction
 
 
 
-function! s:recall_input_history(delta)  "{{{2
+function! s:recall_input_history(delta, change_source_p)  "{{{2
   let o = s:current_hisotry_index
   let n = o + a:delta
   if n < -1
@@ -765,7 +807,13 @@ function! s:recall_input_history(delta)  "{{{2
   if n == -1
     let _ = s:unsaved_input_pattern
   else
-    let _ = ku#input_history()[n]
+    let _ = ku#input_history()[n].pattern
+    if a:change_source_p
+      let new_source = ku#input_history()[n].source
+      if s:available_source_p(new_source)
+        call s:switch_current_source(new_source)
+      endif
+    endif
   endif
 
   let s:current_hisotry_index = n
@@ -779,18 +827,36 @@ endfunction
 
 
 
-function! s:switch_current_source(_)  "{{{2
+function! s:switch_current_source(new_source)  "{{{2
+  " a:new_source must be:
+  " - A number - offset based on the current source in :help ku-sources-list.
+  " - A string - a valid source name or '*history*'.
+  "              '*history*' is treated as the source name for the currently
+  "              recalled input pattern from :help ku-input-history.
+  "
   " FIXME: Update the line to indicate the current source even if this
   "        function is called in any mode other than Insert mode.
   let _ = ku#available_sources()
   let o = index(_, s:current_source)
-  if type(a:_) == type(0)
-    let n = (o + a:_) % len(_)
+  if type(a:new_source) == type(0)
+    let n = (o + a:new_source) % len(_)
     if n < 0
       let n += len(_)
     endif
-  else  " type(a:_) == type('')
-    let n = index(_, a:_)
+  else  " type(a:new_source) == type('')
+    if a:new_source ==# '*history*'
+      if 0 <= s:current_hisotry_index
+        let new_source = ku#input_history()[s:current_hisotry_index].source
+        if !s:available_source_p(new_source)
+          return s:FALSE
+        endif
+      else
+        return s:FALSE
+      endif
+    else
+      let new_source = a:new_source
+    endif
+    let n = index(_, new_source)
   endif
 
   if o == n
@@ -1014,15 +1080,18 @@ function! s:choose_action(item)  "{{{3
 endfunction
 
 
-function! s:do_action(action, item)  "{{{3
+function! s:do_action(action, item, ...)  "{{{3
   " Assumption: BeforeAction is already applied for a:item.
-  call function(s:get_action_function(a:action))(a:item)
+  let composite_p = 1 <= a:0 ? a:1 : s:TRUE
+  call function(s:get_action_function(a:action, composite_p))(a:item)
   return s:TRUE
 endfunction
 
 
-function! s:get_action_function(action)  "{{{3
-  let ACTION_TABLE = s:composite_action_table(s:current_source)
+function! s:get_action_function(action, composite_p)  "{{{3
+  let ACTION_TABLE = (a:composite_p
+  \                   ? s:composite_action_table(s:current_source)
+  \                   : s:api(s:current_source, 'action_table'))
   if has_key(ACTION_TABLE, a:action)  " exists action?
     if ACTION_TABLE[a:action] !=# 'nop'  " enabled action?
       return ACTION_TABLE[a:action]
@@ -1050,7 +1119,11 @@ function! s:with_split(direction_modifier, item)
   let v:errmsg = ''
   execute a:direction_modifier 'split'
   if v:errmsg == ''
-    call s:do_action('default', a:item)
+    " Here we have to do "default" action of the default action table for the
+    " current source instead of composite action table - because the latter
+    " may cause infinitely recursive loop if "default" action is overriden by
+    " other action which refers "default" action, such as "tab-Right".
+    call s:do_action('default', a:item, s:FALSE)
   endif
   return
 endfunction
@@ -1258,18 +1331,29 @@ let s:_current_source_expand_prefix3 = s:INVALID_SOURCE
 " Variables / Constants  "{{{3
 
 " s:inputted_patterns = []  " the first item is the newest inputted pattern.
-let s:HISTORY_SIZE = 100
 let s:HISTORY_FILE = 'info/ku/history'
 
+" The format of history file is:
+" - Each line is corresponding to an inputted pattern.
+" - The first line is corresponding to the newest inputted pattern.
+" - Each line consists of 3 columns separated by a tab;
+"   the 1st column is an inputted pattern,
+"   the 2nd column is the source for which the pattern was inputted, and
+"   the 3rd column is the time when the pattenr was inputted (in localtime()).
 
-function! s:history_add(new_input_pattern)  "{{{3
+
+function! s:history_add(new_input_pattern, source)  "{{{3
   if !{g:ku_history_added_p}(a:new_input_pattern)
     return
   endif
-  call insert(s:inputted_patterns, a:new_input_pattern, 0)
+  call insert(s:inputted_patterns,
+  \           {'pattern': a:new_input_pattern,
+  \            'source': a:source,
+  \            'time': localtime()},
+  \           0)
 
-  if s:HISTORY_SIZE < len(s:inputted_patterns)
-    unlet s:inputted_patterns[(s:HISTORY_SIZE):]
+  if g:ku_history_size < len(s:inputted_patterns)
+    unlet s:inputted_patterns[(g:ku_history_size):]
   endif
 endfunction
 
@@ -1291,7 +1375,15 @@ endfunction
 
 function! s:history_load()  "{{{3
   if filereadable(s:history_file())
-    let s:inputted_patterns = readfile(s:history_file(), '', s:HISTORY_SIZE)
+    let s:inputted_patterns = []
+    for line in readfile(s:history_file(), '', g:ku_history_size)
+      let columns = split(line, '\t')
+      call add(s:inputted_patterns, {
+      \      'pattern': columns[0],
+      \      'source': 2 <= len(columns) ? columns[1] : s:INVALID_SOURCE,
+      \      'time': 3 <= len(columns) ? str2nr(columns[2]) : 0,
+      \    })
+    endfor
   else
     let s:inputted_patterns = []
   endif
@@ -1309,7 +1401,9 @@ function! s:history_save()  "{{{3
     call mkdir(directory, 'p')
   endif
 
-  call writefile(s:history_list(), file)
+  call writefile(map(copy(s:history_list()),
+  \                  'v:val.pattern ."\t". v:val.source ."\t". v:val.time'),
+  \              file)
 endfunction
 
 

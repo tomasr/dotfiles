@@ -1,6 +1,6 @@
 *ku.txt*	Support to do something
 
-Version 0.1.4
+Version 0.1.5
 Script ID: 2337
 Copyright (C) 2008 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
@@ -59,6 +59,8 @@ by |ku-key-mappings|.
 
 You can also write your own sources.  See |ku-sources| for the detail.
 
+See also a demonstration movie: http://www.screencast.com/t/P6nJkJ0DE
+
 
 Requirements:
 - Vim 7.1.299 or later
@@ -110,8 +112,11 @@ ku#default_key_mappings({override_p})		*ku#default_key_mappings()*
 			<C-i>		<Plug>(ku-choose-an-action)
 			<C-j>		<Plug>(ku-next-source)
 			<C-k>		<Plug>(ku-previous-source)
+			<Esc>l		<Plug>(ku-history-source)
 			<Esc>j		<Plug>(ku-newer-history)
 			<Esc>k		<Plug>(ku-older-history)
+			<Esc>J		<Plug>(ku-newer-history-and-source)
+			<Esc>K		<Plug>(ku-older-history-and-source)
 
 ku#custom_action({source}, {action}, {function})	*ku#custom_action()*
 ku#custom_action({source}, {action}, {source2}, {action2})
@@ -126,7 +131,8 @@ ku#custom_action({source}, {action}, {source2}, {action2})
 			In the latter case, the function corresponding to the
 			{action2} for items from {source2} will be called as
 			{action}.  {action2} will be searched from the default
-			action table for {source2}.
+			action table for {source2} or the default action table
+			for all sources if {source2} is "common".
 
 			{source} is the name of a source or "common".  In the
 			former case, the given {action} is only available for
@@ -175,9 +181,21 @@ ku#do_action({name})				*ku#do_action()*
 			Function version of |:KuDoAction|.
 
 ku#input_history()				*ku#input_history()*
-			Return a list of inputted patterns.  The first item is
-			the newest inputted pattern.  Returned value must not
-			be modified.
+			Return a list of inputted patterns.  Returned value
+			must not be modified.  The first item is corresponding
+			to the newest inputted pattern.  Each item is
+			a dictionary which content is as follows:
+
+			"pattern"	String
+				What user inputed before.
+
+			"time"		Number
+				The time when user inputted the pattern.
+				See |localtime()| for the detail of value.
+
+			"source"	String
+				The name of the source for which the pattern
+				was inputted.
 
 
 ------------------------------------------------------------------------------
@@ -212,10 +230,32 @@ In the ku window, the following key mappings are defined:
 			the next one is "file" and
 			the previous one is "metarw-git".
 
+<Plug>(ku-history-source)			*<Plug>(ku-history-source)*
+			If you recall a pattern from |ku-input-history|,
+			change the current source to the one for which the
+			currently recalled pattern was inputted.  Otherwise,
+			nothing will happen.
+
+			For example, if:
+			- you use |<Plug>(ku-older-history)| several times,
+			- the source for the recalled pattern is "file",
+			- and the current source is "buffer",
+			then the current source will be changed to "file".
+
 <Plug>(ku-older-history)			*<Plug>(ku-older-history)*
 <Plug>(ku-newer-history)			*<Plug>(ku-newer-history)*
 			Replace the current input pattern with older/newer
-			one.
+			one in |ku-input-history|.
+
+<Plug>(ku-older-history-and-source)	 *<Plug>(ku-older-history-and-source)*
+<Plug>(ku-newer-history-and-source)	 *<Plug>(ku-newer-history-and-source)*
+			Like |<Plug>(ku-older-history)| or
+			|<Plug>(ku-newer-history)|, but change the current
+			source as same as the one for which the pattern was
+			inputted.
+
+			If the new source is not currently available, the
+			current source will not be changed.
 
 The default key mappings are defined by |ku#default_key_mappings()|.
 
@@ -315,11 +355,12 @@ window.
 - Input history is saved as "info/ku/history" under the first directory in
   'runtimepath'.
 
-- Maximum size of input history is 100.  The oldest pattern will be removed on
-  overflow.
+- Maximum size of input history is configured by |g:ku_history_size|.
+  Whenever the number of inputted patterns exceeds the limit, the oldest
+  patterns will be removed.
 
-- In the ku window, <Plug>(ku-older-history) and <Plug>(ku-newer-history) can
-  be used to recall an old input pattern.
+- In the ku window, |<Plug>(ku-older-history)| and |<Plug>(ku-newer-history)|
+  can be used to recall an old input pattern.
 
 - Inputted pattern will be added to input history if some action is executed
   on it.
@@ -366,6 +407,8 @@ left						*ku-action-left*
 right						*ku-action-right*
 			Open a new window in the direction specified by the
 			name of each action, then do |ku-action-default|.
+			NB: "default" action will be searched from the default
+			action table of the current source.
 
 			For example, "left" opens a window at the left side of
 			the current window, then do |ku-action-default| in the
@@ -616,6 +659,10 @@ g:ku_history_added_p				*g:ku_history_added_p*
 	the input history or false otherwise.  The default value means
 	non-empty pattern can be added into the input history.
 
+g:ku_history_size				*g:ku_history_size*
+	A number which is the maximum size of input history.
+	Default value is 1000.
+
 
 
 
@@ -708,6 +755,26 @@ BUGS						*ku-bugs*
 ==============================================================================
 CHANGELOG					*ku-changelog*
 
+0.1.5	2008-10-19T21:32:12+09:00/2008-12-08T01:31:24+09:00
+	- Show the information about |ku-input-history| in |the-ku-buffer|.
+	- |ku#custom_action()|: Accept "common" for {source2} to specify an
+	  action from the default action table for all sources.  For example:
+>
+	  call ku#custom_action('buffer', 'xyzzy', 'common', 'tab-Right')
+<
+	- Modify |ku-action-right| and other actions to refer "default" action
+	  from the default action table of the current source.  Because they
+	  may fall into infinite loop if user-defined "default" action refers
+	  "default" action.
+	- Add |g:ku_history_size|.
+	- Add |<Plug>(ku-older-history-and-source)| and
+	  |<Plug>(ku-newer-history-and-source)|.
+	- Add |<Plug>(ku-history-source)|.
+
+	Incompatible changes:
+	- Change the format of value returned by |ku#input_history()|.
+	  Now it is a list of dictionaries, not a list of strings.
+
 0.1.4	2008-09-29T02:31:12+09:00
 	- Add |ku#{source}#acc_valid_p()| to filter items for
 	  |ku-auto-component-completion|.
@@ -776,4 +843,4 @@ CHANGELOG					*ku-changelog*
 
 
 ==============================================================================
-vim:tw=78:ts=8:ft=help:norl:fdm=marker:
+vim:tw=78:ts=8:ft=help:norl:fen:fdl=0:fdm=marker:

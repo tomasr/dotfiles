@@ -1,5 +1,5 @@
 " Vim syntax: ku
-" Version: 0.1.4
+" Version: 0.1.5
 " Copyright (C) 2008 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -31,9 +31,11 @@ endif
 
 syntax case match
 
-syntax match kuStatusLine /\%1l.*/ contains=kuSourcePrompt,kuSourceName
+syntax match kuStatusLine /\%1l.*/
+\            contains=kuSourcePrompt,kuSourceName,kuHistoryInfo
 syntax match kuSourcePrompt /^Source/ contained
-syntax match kuSourceName /: \zs.*/ contained
+syntax match kuSourceName /: \zs[a-zA-Z-]*/ contained
+syntax match kuHistoryInfo ! (\zs\d+/\d+\ze)$! contained
 
 syntax match kuInputLine /\%2l.*/ contains=kuInputPrompt
 syntax match kuInputPrompt /^>/ contained nextgroup=kuInputPattern
@@ -44,6 +46,7 @@ syntax match kuInputPattern /.*/ contained
 
 highlight default link kuSourcePrompt  Statement
 highlight default link kuSourceName  Type
+highlight default link kuHistoryInfo  NONE
 highlight default link kuInputPrompt  Statement
 highlight default link kuInputPattern  NONE
 
