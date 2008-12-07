@@ -1,2 +1,3 @@
 .vim/doc/tags
 *.swp
+.vim/info/

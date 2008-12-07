@@ -140,6 +140,12 @@ let html_no_pre = 1
 let use_xhtml = 1
 
 "
+" Configure Ku
+"
+call ku#custom_prefix('common', '~', $HOME)
+call ku#custom_prefix('common', '.vim', $HOME.'/.vim')
+let g:ku_component_separators='/\\'
+"
 " Configure syntax specific options
 "
 let python_highlight_all = 1
