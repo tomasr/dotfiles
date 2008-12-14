@@ -1,5 +1,5 @@
-" Vim syntax: ku
-" Version: 0.1.7
+" ku source: source
+" Version: 0.0.0
 " Copyright (C) 2008 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -21,48 +21,80 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
+" Variables  "{{{1
 
-if exists('b:current_syntax')
-  finish
-endif
-
-
-
-
-syntax case match
-
-syntax match kuStatusLine /\%1l.*/
-\            contains=kuSourcePrompt,kuSourceName,kuHistoryInfo
-syntax match kuSourcePrompt /^Source/ contained
-syntax match kuSourceName /: \zs[a-zA-Z-]*/ contained
-syntax match kuHistoryInfo ! (\zs\d+/\d+\ze)$! contained
-
-syntax match kuInputLine /\%2l.*/ contains=kuInputPrompt
-syntax match kuInputPrompt /^>/ contained nextgroup=kuInputPattern
-syntax match kuInputPattern /.*/ contained
+let s:cached_items = []
+let s:the_old_input_pattern = ''
 
 
 
 
-highlight default link kuSourcePrompt  Statement
-highlight default link kuSourceName  Type
-highlight default link kuHistoryInfo  NONE
-highlight default link kuInputPrompt  Statement
-highlight default link kuInputPattern  NONE
-
-" The following definitions are for <Plug>(ku-choose-an-action).  See
-" s:choose_action() in autoload/ku.vim for the details.
-highlight default link kuChooseAction  NONE
-highlight default link kuChooseItem  NONE
-highlight default link kuChooseKey  SpecialKey
-highlight default link kuChooseMessage  NONE
-highlight default link kuChoosePrompt  kuSourcePrompt
-highlight default link kuChooseSource  kuSourceName
 
 
 
 
-let b:current_syntax = 'ku'
+" Interface  "{{{1
+function! ku#source#event_handler(event, ...)  "{{{2
+  if a:event ==# 'SourceEnter'
+    let s:cached_items = map(copy(ku#available_sources()), '{"word": v:val}')
+    let s:the_old_input_pattern = ku#set_the_current_input_pattern('')
+    return
+  elseif a:event ==# 'SourceLeave'
+    call ku#set_the_current_input_pattern(s:the_old_input_pattern)
+    return
+  else
+    return call('ku#default_event_handler', [a:event] + a:000)
+  endif
+endfunction
 
-" __END__
+
+
+
+function! ku#source#action_table()  "{{{2
+  return {
+  \   'default': 'ku#source#action_open',
+  \   'open': 'ku#source#action_open',
+  \ }
+endfunction
+
+
+
+
+function! ku#source#key_table()  "{{{2
+  return {
+  \   "\<C-o>": 'open',
+  \   'o': 'open',
+  \ }
+endfunction
+
+
+
+
+function! ku#source#gather_items(pattern)  "{{{2
+  return s:cached_items
+endfunction
+
+
+
+
+
+
+
+
+" Misc.  "{{{1
+" Actions  "{{{2
+function! ku#source#action_open(item)  "{{{3
+  let source = a:item.word  " FIXME: How about if this source is unavailable?
+  call ku#start(source, s:the_old_input_pattern)
+  return
+endfunction
+
+
+
+
+
+
+
+
+" __END__  "{{{1
 " vim: foldmethod=marker

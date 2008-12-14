@@ -1,5 +1,5 @@
 " ku - Support to do something
-" Version: 0.1.5
+" Version: 0.1.7
 " Copyright (C) 2008 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -142,6 +142,11 @@ if !exists('g:ku_history_size')
 endif
 
 
+" Magic line numbers in the ku buffer.
+let s:LNUM_STATUS = 1
+let s:LNUM_INPUT = 2
+
+
 
 
 
@@ -149,6 +154,13 @@ endif
 
 
 " Interface  "{{{1
+function! ku#available_source_p(source)  "{{{2
+  return 0 <= index(ku#available_sources(), a:source)
+endfunction
+
+
+
+
 function! ku#available_sources()  "{{{2
   " Assumes that s:available_sources will be never changed during a session.
   if s:ku_active_p() && s:session_id == s:_session_id_source_cache
@@ -341,8 +353,10 @@ function! ku#default_key_mappings(override_p)  "{{{2
   call s:ni_map(_, '<buffer> <C-m>', '<Plug>(ku-do-the-default-action)')
   call s:ni_map(_, '<buffer> <Tab>', '<Plug>(ku-choose-an-action)')
   call s:ni_map(_, '<buffer> <C-i>', '<Plug>(ku-choose-an-action)')
+  call s:ni_map(_, '<buffer> <Esc>i', '<Plug>(ku-do-persistent-action)')
   call s:ni_map(_, '<buffer> <C-j>', '<Plug>(ku-next-source)')
   call s:ni_map(_, '<buffer> <C-k>', '<Plug>(ku-previous-source)')
+  call s:ni_map(_, '<buffer> <C-l>', '<Plug>(ku-choose-source)')
   call s:ni_map(_, '<buffer> <Esc>l', '<Plug>(ku-history-source)')
   call s:ni_map(_, '<buffer> <Esc>j', '<Plug>(ku-newer-history)')
   call s:ni_map(_, '<buffer> <Esc>k', '<Plug>(ku-older-history)')
@@ -366,6 +380,17 @@ endfunction
 
 
 
+function! ku#get_the_current_input_pattern()  "{{{2
+  if s:ku_active_p()
+    return s:remove_prompt(getline(s:LNUM_INPUT))
+  else
+    return 0
+  endif
+endfunction
+
+
+
+
 function! ku#input_history()  "{{{2
   return s:history_list()
 endfunction
@@ -380,17 +405,29 @@ endfunction
 
 
 
+function! ku#set_the_current_input_pattern(s)  "{{{2
+  if s:ku_active_p()
+    let old_one = s:remove_prompt(getline(s:LNUM_INPUT))
+    call setline(s:LNUM_INPUT, a:s)
+    return old_one
+  else
+    return 0
+  endif
+endfunction
+
+
+
+
 function! ku#start(source, ...)  "{{{2
-  if !s:available_source_p(a:source)
+  if !ku#available_source_p(a:source)
     echoerr 'ku: Not a valid source name:' string(a:source)
     return s:FALSE
   endif
 
   if s:ku_active_p()
-    " ":Ku {source}" change the current source as a:source if ku is already
-    " active.
-    call s:switch_current_source(a:source)
-    return s:TRUE
+    echoerr 'ku: Already active - called with:'
+    \       string(a:source) 'and' string(a:000)
+    return s:FALSE
   endif
 
   let s:current_source = a:source
@@ -434,6 +471,23 @@ function! ku#start(source, ...)  "{{{2
   call feedkeys('A', 'n')
 
   call s:api(s:current_source, 'event_handler', 'SourceEnter')
+  return s:TRUE
+endfunction
+
+
+
+
+function! ku#switch_source(source)  "{{{2
+  if !s:ku_active_p()
+    echoerr 'ku: Not active - called with:' string(a:source)
+    return s:FALSE
+  endif
+  if !ku#available_source_p(a:source)
+    echoerr 'ku: Unavailable source:' string(a:source)
+    return s:FALSE
+  endif
+
+  call s:switch_current_source(a:source)
   return s:TRUE
 endfunction
 
@@ -527,7 +581,7 @@ endfunction
 
 
 function! s:do(action_name)  "{{{2
-  let current_user_input_raw = getline(2)
+  let current_user_input_raw = getline(s:LNUM_INPUT)
   if current_user_input_raw !=# s:last_user_input_raw
     " current_user_input_raw seems to be inserted by completion.
     for _ in s:last_completed_items
@@ -555,12 +609,8 @@ function! s:do(action_name)  "{{{2
     endif
   endif
 
-  call s:history_add(s:remove_prompt(s:last_user_input_raw), s:current_source)
-  let s:last_used_source = s:current_source
-  let s:last_used_input_pattern = s:last_user_input_raw
-
-  if a:action_name == ''
-    let action = s:choose_action(item)
+  if a:action_name ==# '*choose*' || a:action_name ==# '*persistent*'
+    let action = s:choose_action(item, a:action_name ==# '*persistent*')
   else
     let action = a:action_name
   endif
@@ -569,8 +619,19 @@ function! s:do(action_name)  "{{{2
   " ku window.
   call s:end()
 
-  let item = s:api(s:current_source, 'event_handler', 'BeforeAction', item)
-  call s:do_action(action, item)
+  if action ==# 'cancel'
+    " Ignore.
+  elseif action ==# 'selection'
+    call ku#restart()  " Emulate to return to the previous selection.
+  else
+    call s:history_add(s:remove_prompt(s:last_used_input_pattern),
+    \                  s:last_used_source)
+    let item = s:api(s:current_source, 'event_handler', 'BeforeAction', item)
+    call s:do_action(action, item)
+    if a:action_name ==# '*persistent*'
+      call ku#restart()
+    endif
+  endif
   return
 endfunction
 
@@ -582,6 +643,21 @@ function! s:end()  "{{{2
     return s:FALSE
   endif
   let s:_end_locked_p = s:TRUE
+
+    " Another choise is getline(s:LNUM_INPUT) (= the current input pattern in
+    " the ku buffer), but it is improper for the following reason: 
+    "
+    " - Return value from getline(s:LNUM_INPUT) may be an item which was
+    "   selected from the completion menu if s:last_user_input_raw and
+    "   getline(s:LNUM_INPUT) are the same value.
+    " - Users don't want to continue a selection with such completed value by
+    "   ku#start() and <Plug>(ku-do-persistent-action), because typical usage
+    "   of them is to do some action for several items which are matched to
+    "   a pattern.
+    "
+    " So here we have to use s:last_user_input_raw instead.
+  let s:last_used_input_pattern = s:last_user_input_raw
+  let s:last_used_source = s:current_source
 
   call s:api(s:current_source, 'event_handler', 'SourceLeave')
   close
@@ -621,11 +697,15 @@ function! s:initialize_ku_buffer()  "{{{2
   nnoremap <buffer> <silent> <Plug>(ku-do-the-default-action)
   \        :<C-u>call <SID>do('default')<Return>
   nnoremap <buffer> <silent> <Plug>(ku-choose-an-action)
-  \        :<C-u>call <SID>do('')<Return>
+  \        :<C-u>call <SID>do('*choose*')<Return>
+  nnoremap <buffer> <silent> <Plug>(ku-do-persistent-action)
+  \        :<C-u>call <SID>do('*persistent*')<Return>
   nnoremap <buffer> <silent> <Plug>(ku-next-source)
   \        :<C-u>call <SID>switch_current_source(1)<Return>
   nnoremap <buffer> <silent> <Plug>(ku-previous-source)
   \        :<C-u>call <SID>switch_current_source(-1)<Return>
+  nnoremap <buffer> <silent> <Plug>(ku-choose-source)
+  \        :<C-u>call <SID>switch_current_source('source')<Return>
   nnoremap <buffer> <silent> <Plug>(ku-history-source)
   \        :<C-u>call <SID>switch_current_source('*history*')<Return>
   nnoremap <buffer> <silent> <Plug>(ku-newer-history)
@@ -655,6 +735,10 @@ function! s:initialize_ku_buffer()  "{{{2
   \    <Plug>(ku-%-accept-completion)
   \<Plug>(ku-%-leave-insert-mode)
   \<Plug>(ku-choose-an-action)
+  imap <buffer> <silent> <Plug>(ku-do-persistent-action)
+  \    <Plug>(ku-%-accept-completion)
+  \<Plug>(ku-%-leave-insert-mode)
+  \<Plug>(ku-do-persistent-action)
   imap <buffer> <silent> <Plug>(ku-next-source)
   \    <Plug>(ku-%-cancel-completion)
   \<Plug>(ku-%-leave-insert-mode)
@@ -664,6 +748,11 @@ function! s:initialize_ku_buffer()  "{{{2
   \    <Plug>(ku-%-cancel-completion)
   \<Plug>(ku-%-leave-insert-mode)
   \<Plug>(ku-previous-source)
+  \<Plug>(ku-%-enter-insert-mode)
+  imap <buffer> <silent> <Plug>(ku-choose-source)
+  \    <Plug>(ku-%-cancel-completion)
+  \<Plug>(ku-%-leave-insert-mode)
+  \<Plug>(ku-choose-source)
   \<Plug>(ku-%-enter-insert-mode)
   imap <buffer> <silent> <Plug>(ku-history-source)
   \    <Plug>(ku-%-cancel-completion)
@@ -712,10 +801,10 @@ function! s:on_CursorMovedI()  "{{{2
   " the end of line (i.e. getline('.') < col('.')), the cursor will be move at
   " the last character of the current line after calling setline().
   let c0 = col('.')
-  call setline(1, '')
+  call setline(s:LNUM_STATUS, '')
   let c1 = col('.')
   if s:current_hisotry_index == -1
-    call setline(1, printf('Source: %s', s:current_source))
+    call setline(s:LNUM_STATUS, printf('Source: %s', s:current_source))
   else
     let old_source = ku#input_history()[s:current_hisotry_index].source
     if s:current_source ==# old_source
@@ -723,11 +812,12 @@ function! s:on_CursorMovedI()  "{{{2
     else
       let _ = printf(' (was %s)', old_source)
     endif
-    call setline(1, printf('Source: %s (%d/%d)%s',
-    \                      s:current_source,
-    \                      s:current_hisotry_index + 1,
-    \                      len(ku#input_history()),
-    \                      _))
+    call setline(s:LNUM_STATUS,
+    \            printf('Source: %s (%d/%d)%s',
+    \                   s:current_source,
+    \                   s:current_hisotry_index + 1,
+    \                   len(ku#input_history()),
+    \                   _))
   endif
 
   " The order of these conditions are important.
@@ -810,7 +900,7 @@ function! s:recall_input_history(delta, change_source_p)  "{{{2
     let _ = ku#input_history()[n].pattern
     if a:change_source_p
       let new_source = ku#input_history()[n].source
-      if s:available_source_p(new_source)
+      if ku#available_source_p(new_source)
         call s:switch_current_source(new_source)
       endif
     endif
@@ -847,7 +937,7 @@ function! s:switch_current_source(new_source)  "{{{2
     if a:new_source ==# '*history*'
       if 0 <= s:current_hisotry_index
         let new_source = ku#input_history()[s:current_hisotry_index].source
-        if !s:available_source_p(new_source)
+        if !ku#available_source_p(new_source)
           return s:FALSE
         endif
       else
@@ -991,7 +1081,7 @@ endfunction
 
 
 " Action-related stuffs  "{{{2
-function! s:choose_action(item)  "{{{3
+function! s:choose_action(item, persistent_p)  "{{{3
   " Prompt  Item     Source
   "    |     |         |
   "   _^__  _^______  _^__
@@ -1061,7 +1151,7 @@ function! s:choose_action(item)  "{{{3
   endfor
 
   echohl kuChooseMessage
-  echo 'What action?'
+  echo 'What action?' (a:persistent_p ? '[persistent]' : '')
   echohl NONE
 
   " Take user input.
@@ -1172,6 +1262,13 @@ function! s:_default_action_cd(item)  "{{{3
 endfunction
 
 
+function! s:_default_action_default(item)  "{{{3
+  echoerr 'ku: Source' string(a:item._ku_source)
+  \       'does not have the "default" action'
+  return
+endfunction
+
+
 function! s:_default_action_ex(item)  "{{{3
   " Support to execute an Ex command on a:item.word (as path).
   call feedkeys(printf(": %s\<C-b>", fnameescape(a:item.word)), 'n')
@@ -1219,13 +1316,15 @@ function! s:default_action_table()  "{{{3
   \   'Top': 's:_default_action_Top',
   \   'above': 's:_default_action_above',
   \   'below': 's:_default_action_below',
-  \   'cancel': 's:_default_action_nop',
+  \   'cancel': '*pseudo-action*',
   \   'cd': 's:_default_action_cd',
+  \   'default': 's:_default_action_default',
   \   'ex': 's:_default_action_ex',
   \   'lcd': 's:_default_action_lcd',
   \   'left': 's:_default_action_left',
-  \   'nop': 's:_default_action_nop',
+  \   'nop': '*pseudo-action*',
   \   'right': 's:_default_action_right',
+  \   'selection': '*pseudo-action*',
   \   'tab-Left': 's:_default_action_tab_Left',
   \   'tab-Right': 's:_default_action_tab_Right',
   \   'tab-left': 's:_default_action_tab_left',
@@ -1261,6 +1360,7 @@ function! s:default_key_table()  "{{{3
   \   "\<C-j>": 'below',
   \   "\<C-k>": 'above',
   \   "\<C-l>": 'right',
+  \   "\<C-r>": 'selection',
   \   "\<C-t>": 'tab-Right',
   \   "\<Esc>": 'cancel',
   \   "\<Return>": 'default',
@@ -1343,7 +1443,7 @@ let s:HISTORY_FILE = 'info/ku/history'
 
 
 function! s:history_add(new_input_pattern, source)  "{{{3
-  if !{g:ku_history_added_p}(a:new_input_pattern)
+  if !{g:ku_history_added_p}(a:new_input_pattern, a:source)
     return
   endif
   call insert(s:inputted_patterns,
@@ -1357,8 +1457,10 @@ function! s:history_add(new_input_pattern, source)  "{{{3
   endif
 endfunction
 
-function! ku#_history_added_p(new_input_pattern)
-  return a:new_input_pattern !~ '^\s*$'
+function! ku#_history_added_p(new_input_pattern, source)
+  return (a:source !=# 'history'
+  \       && a:source != 'source'
+  \       && a:new_input_pattern !~ '^\s*$')
 endfunction
 
 
@@ -1424,13 +1526,6 @@ function! s:api(source_name, api_name, ...)  "{{{2
     return s:TRUE
   endif
   return call(func, args)
-endfunction
-
-
-
-
-function! s:available_source_p(source)  "{{{2
-  return 0 <= index(ku#available_sources(), a:source)
 endfunction
 
 

@@ -1,0 +1,119 @@
+*ku-history.txt*	ku source: history
+
+Version 0.0.0
+Copyright (C) 2008 kana <http://whileimautomaton.net/>
+License: MIT license  {{{
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+CONTENTS					*ku-history-contents*
+
+Introduction		|ku-history-introduction|
+Action Table		|ku-history-action-table|
+Key Table		|ku-history-key-table|
+Variables		|ku-history-variables|
+Bugs			|ku-history-bugs|
+Changelog		|ku-history-changelog|
+
+
+
+
+==============================================================================
+INTRODUCTION					*ku-history-introduction*
+
+*ku-history* is a source for |ku| to deal with |ku-input-history|.  You can
+choose an input pattern from the history and do some action to it.
+
+
+Requirements:
+- Vim 7.1.299 or later
+- |ku| 0.1.6 or later (vimscript#2337)
+
+
+
+
+==============================================================================
+ACTION TABLE					*ku-history-action-table*
+
+default						*ku-history-action-default*
+			Same as "open".
+
+open						*ku-history-action-open*
+			Replace the current input pattern with the selected
+			item and change the current source to the source for
+			which the item was inputted.
+
+
+
+
+==============================================================================
+KEY TABLE					*ku-history-key-table*
+
+Key		Action ~
+--------	--------
+<C-o>		open		|ku-history-action-open|
+o		open		|ku-history-action-open|
+
+
+
+
+==============================================================================
+VARIABLES					*ku-history-variables*
+
+g:ku_history_sorting_style			*g:ku_history_sorting_style*
+			A string which specifies how to sort items.  This
+			variable can be one of the following values:
+
+			"pattern"
+				Sort by pattern.
+
+			"time"
+				Sort by time when a pattern was inputted.
+
+			Default value is "time".
+
+g:ku_history_fallback_source			*g:ku_history_fallback_source*
+			The name of a source which is used instead of the
+			source in |ku-input-history| if it is unavailable.
+
+			Default value is "file".
+
+
+
+
+==============================================================================
+BUGS						*ku-history-bugs*
+
+- There are many bugs around the world.
+
+
+
+
+==============================================================================
+CHANGELOG					*ku-history-changelog*
+
+0.0.0	2008-12-08T21:01:58+09:00
+	- Initial version.
+
+
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:fen:fdl=0:fdm=marker:
