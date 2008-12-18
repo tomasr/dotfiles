@@ -127,6 +127,29 @@ function remove-svn($path = '.') {
 function get-syntax([string] $cmdlet) {
    get-command $cmdlet -syntax
 }
+# calculate a hash from a string
+function convert-tobinhex($array) {
+   $str = new-object system.text.stringbuilder
+   $array | %{
+      [void]$str.Append($_.ToString('x2'));
+   }
+   return $str.ToString()
+}
+function convert-frombinhex([string]$binhex) {
+   $arr = new-object byte[] ($binhex.Length/2)
+   for ( $i=0; $i -lt $arr.Length; $i++ ) {
+      $arr[$i] = [Convert]::ToByte($binhex.substring($i*2,2), 16)
+   }
+   return $arr
+}
+function get-hash($value, $hashalgo = 'MD5') {
+   $tohash = $null
+   if ( $value -is [string] ) {
+      $tohash = [text.encoding]::UTF8.GetBytes($value)
+   }
+   $hash = [security.cryptography.hashalgorithm]::Create($hashalgo)
+   return convert-tobinhex($hash.ComputeHash($tohash));
+}
 ###############################################################################
 # aliases
 ###############################################################################
