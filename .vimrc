@@ -12,13 +12,13 @@ if has("win32") || has("win64")
    set shellpipe=>
    set shellredir=>
 else
-   set guifont=Envy\ Code\ R\ 16
+   set guifont=Envy\ Code\ R\ 15
 end
 set bg=dark
 
+let g:zenburn_high_Contrast = 1
 if has("gui_running")
    colorscheme molokai
-   let g:zenburn_high_Contrast = 1
    " set default size: 90x35
    set columns=90
    set lines=35
@@ -28,6 +28,10 @@ if has("gui_running")
    let g:obviousModeInsertHi = "guibg=Black guifg=White"
 else
    let g:obviousModeInsertHi = "term=reverse ctermbg=5"
+   if has("unix")
+      set t_Co=256
+      colorscheme zenburn
+   endif
 endif
 
 set tabstop=3 " tab size = 3
