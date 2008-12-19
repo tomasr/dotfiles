@@ -143,7 +143,7 @@ function convert-frombinhex([string]$binhex) {
    return $arr
 }
 function get-hash($value, $hashalgo = 'MD5') {
-   $tohash = $null
+   $tohash = $value
    if ( $value -is [string] ) {
       $tohash = [text.encoding]::UTF8.GetBytes($value)
    }
