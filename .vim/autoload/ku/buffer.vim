@@ -1,5 +1,5 @@
 " ku source: buffer
-" Version: 0.0.1
+" Version: 0.0.2
 " Copyright (C) 2008 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -103,7 +103,7 @@ function! s:open(bang, item)  "{{{2
   if a:item._ku_completed_p
     execute a:item._buffer_nr 'buffer'.a:bang
   else
-    execute 'edit'.a:bang '`=fnameescape(a:item.word)`'
+    execute 'edit'.a:bang fnameescape(a:item.word)
   endif
 endfunction
 

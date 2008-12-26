@@ -1,6 +1,6 @@
 *ku.txt*	Support to do something
 
-Version 0.1.7
+Version 0.1.8
 Script ID: 2337
 Copyright (C) 2008 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
@@ -78,6 +78,9 @@ You can also write your own sources.  See |ku-sources| for the details.
 
 Requirements:
 - Vim 7.1.299 or later
+
+Latest version:
+http://github.com/kana/config/commits/vim-ku
 
 
 
@@ -273,8 +276,10 @@ See also |ku#default_key_mappings()| for the default key mappings for them.
 			(2) take an input of a single key stroke,
 			(3) then do the action corresponding to the key.
 
-			See also |ku-default-action-table| and
-			|ku-default-key-table|.
+			See also:
+			- |g:ku_choosing_actions_sorting_style|
+			- |ku-default-key-table|
+			- |ku-default-key-table|
 
 <Plug>(ku-do-persistent-action)      	    *<Plug>(ku-do-persistent-action)*
 			Like |<Plug>(ku-choose-an-action)|,
@@ -730,6 +735,19 @@ g:ku_buffer_name				*g:ku_buffer_name*
 	Windows.  Because '*' cannot be used for buffer name on Microsoft
 	Windows.
 
+g:ku_choosing_actions_sorting_style	 *g:ku_choosing_actions_sorting_style*
+	A string which specify how to sort actions
+	when |<Plug>(ku-choose-an-action)| shows available actions.
+	This variable can be one of the following values:
+
+	'by-action'
+		Sort by the name of each action.
+
+	'by-key'
+		Sort by the name of each key to choose an action.
+
+	Default value is 'by-action'.
+
 g:ku_common_junk_pattern			*g:ku_common_junk_pattern*
 g:ku_{source}_junk_pattern			*g:ku_{source}_junk_pattern*
 	Variables to hold regular expressions to determine "junk" items.  Junk
@@ -882,6 +900,12 @@ BUGS						*ku-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-changelog*
+
+0.1.8	2008-12-12T02:03:37+09:00/2008-12-24T17:33:31+09:00
+	- Add |g:ku_choosing_actions_sorting_style|.
+	- Change the sorting style of |<Plug>(ku-choose-an-action)|.
+	  See also |g:ku_choosing_actions_sorting_style|.
+	- Fix some bugs - see |ku-buffer-changelog| and |ku-file-changelog|.
 
 0.1.7	2008-12-09T17:26:01+09:00/2008-12-11T17:08:52+09:00
 	- Include new source |ku-source|.

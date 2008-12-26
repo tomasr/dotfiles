@@ -1,6 +1,6 @@
 *ku-file.txt*	ku source: file
 
-Version 0.0.1
+Version 0.0.2
 Copyright (C) 2008 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -45,6 +45,9 @@ Requirements:
 - Vim 7.1.299 or later
 - |ku| 0.1.0 or later (vimscript#2337)
 
+Latest version:
+http://github.com/kana/config/commits/vim-ku-file
+
 
 
 
@@ -87,6 +90,10 @@ BUGS						*ku-file-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-file-changelog*
+
+0.0.2	2008-12-24T14:08:50+09:00
+	- Fix the bug that a file or a directory which path contains a space
+	  cannot be correctly opened.
 
 0.0.1	2008-09-29T02:42:28+09:00
 	- Filter items for |ku-auto-component-completion|.  Only directories

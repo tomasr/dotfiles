@@ -5,7 +5,9 @@
 
 
 function script:append-path { 
-   $env:PATH += ';' + $args
+   if ( -not $env:PATH.contains($args) ) {
+      $env:PATH += ';' + $args
+   }
 } 
 function script:append-classpath { 
    if ( [String]::IsNullOrEmpty($env:CLASSPATH) ) {

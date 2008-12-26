@@ -1,6 +1,6 @@
 *ku-buffer.txt*	ku source: buffer
 
-Version 0.0.1
+Version 0.0.2
 Copyright (C) 2008 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -44,6 +44,9 @@ from many buffers and do some action to it.
 Requirements:
 - Vim 7.1.299 or later
 - |ku| 0.1.0 or later (vimscript#2337)
+
+Latest version:
+http://github.com/kana/config/commits/vim-ku-buffer
 
 
 
@@ -99,6 +102,10 @@ BUGS						*ku-buffer-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-buffer-changelog*
+
+0.0.2	2008-12-24T14:04:21+09:00
+	- Fix the bug that a file or a directory which path contains a space
+	  cannot be correctly opened.
 
 0.0.1	2008-09-29T03:28:09+09:00
 	- Add sort priority to sort buffers which names are showed as

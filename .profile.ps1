@@ -25,7 +25,9 @@ $env:EDITOR = 'gvim.exe'
 # and configure dev environment
 #
 function script:append-path { 
-   $env:PATH += ';' + $args
+   if ( -not $env:PATH.contains($args) ) {
+      $env:PATH += ';' + $args
+   }
 }
 
 & "$SCRIPTS\devenv.ps1"

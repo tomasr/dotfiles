@@ -95,5 +95,8 @@ add-path $FX20
 
 $env:LIB = join($global:LIBDIRS)
 $env:INCLUDE = join($global:INCDIRS)
-$env:PATH = $env:PATH + ';' + (join($global:DEVPATHS))
+$newpaths = (join($global:DEVPATHS))
+if ( -not $env:PATH.contains($newpaths) ) {
+   $env:PATH = $env:PATH + ';' + $newpaths
+}
 

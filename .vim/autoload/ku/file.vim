@@ -1,5 +1,5 @@
 " ku source: file
-" Version: 0.0.1
+" Version: 0.0.2
 " Copyright (C) 2008 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
@@ -120,7 +120,7 @@ endfunction
 
 " Misc.  "{{{1
 function! s:open(bang, item)  "{{{2
-  execute 'edit'.a:bang '`=fnameescape(a:item.word)`'
+  execute 'edit'.a:bang fnameescape(a:item.word)
 endfunction
 
 
