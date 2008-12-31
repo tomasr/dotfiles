@@ -1,7 +1,7 @@
 ###############################################################################
 # powershell initialization script
 # call from profile.ps1, like this:
-#     . "$env:HOME\_profile.ps1"
+#     . "$env:HOME\.profile.ps1"
 # (notice the '.')
 ###############################################################################
 
