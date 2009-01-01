@@ -30,7 +30,7 @@ else
    let g:obviousModeInsertHi = "term=reverse ctermbg=5"
    if has("unix")
       set t_Co=256
-      colorscheme zenburn
+      colorscheme molokai
    endif
 endif
 
