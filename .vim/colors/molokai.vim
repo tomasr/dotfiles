@@ -122,6 +122,9 @@ else
    hi NonText         guifg=#BCBCBC guibg=#232526
 end
 
+"
+" Support for 256-color terminal
+"
 if &t_Co > 255
    hi Boolean         ctermfg=135
    hi Character       ctermfg=144
@@ -133,12 +136,11 @@ if &t_Co > 255
    hi Debug           ctermfg=225               cterm=bold
    hi Define          ctermfg=81
    hi Delimiter       ctermfg=241
-" TODO
+
    hi DiffAdd                     ctermbg=24
    hi DiffChange      ctermfg=181 ctermbg=239
    hi DiffDelete      ctermfg=162 ctermbg=53
    hi DiffText                    ctermbg=102 cterm=bold
-" TODO
 
    hi Directory       ctermfg=118               cterm=bold
    hi Error           ctermfg=219 ctermbg=89
