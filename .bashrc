@@ -65,8 +65,10 @@ fi
 
 alias cls=clear
 export TOOLS="$HOME/tools"
-export JAVA_HOME="$TOOLS/jdk1.5.0"
-export PATH=$TOOLS/jdk1.5.0/bin:$TOOLS/maven/bin:$TOOLS/nant-0.85/bin:$PATH
+export JAVA_HOME="$TOOLS/jdk1.6.0_11"
+export PATH=$TOOLS/jdk1.6.0_11/bin:$TOOLS/maven/bin:$TOOLS/nant-0.85/bin:$PATH
+export RUBYOPT=rubygems
+export GEM_HOME=$TOOLS/gems_repo
 
 #
 # run fortune at startup
