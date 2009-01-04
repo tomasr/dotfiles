@@ -27,7 +27,7 @@ if has("gui_running")
    set guioptions-=T
    let g:obviousModeInsertHi = "guibg=Black guifg=White"
 else
-   let g:obviousModeInsertHi = "term=reverse ctermbg=5"
+   let g:obviousModeInsertHi = "ctermfg=253 ctermbg=16"
    if has("unix")
       set t_Co=256
       colorscheme molokai
