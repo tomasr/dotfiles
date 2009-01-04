@@ -1,1 +1,1 @@
-robocopy g:\music\ m:\music\ *.* /E /ZB /NP
+robocopy f:\music\ i:\music\ *.* /E /ZB /NP
