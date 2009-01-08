@@ -5,20 +5,12 @@ source $VIMRUNTIME/mswin.vim
 "
 " appearance options
 "
-if has("win32") || has("win64")
-   set guifont=Envy\ Code\ R:h13.5
-   set shell=powershell.exe
-   set shellcmdflag=-c
-   set shellpipe=>
-   set shellredir=>
-else
-   set guifont=Envy\ Code\ R\ 15
-end
 set bg=dark
-
 let g:zenburn_high_Contrast = 1
+set t_Co=256
+colorscheme molokai
+
 if has("gui_running")
-   colorscheme molokai
    " set default size: 90x35
    set columns=90
    set lines=35
@@ -28,10 +20,6 @@ if has("gui_running")
    let g:obviousModeInsertHi = "guibg=Black guifg=White"
 else
    let g:obviousModeInsertHi = "ctermfg=253 ctermbg=16"
-   if has("unix")
-      set t_Co=256
-      colorscheme molokai
-   endif
 endif
 
 set tabstop=3 " tab size = 3
@@ -47,6 +35,20 @@ set showmatch " Show matching braces.
 " Line wrapping on by default
 set wrap
 set linebreak
+
+if has("win32") || has("win64")
+   set guifont=Envy\ Code\ R:h13.5
+   set shell=powershell.exe
+   set shellcmdflag=-c
+   set shellpipe=>
+   set shellredir=>
+   if !has("gui_running")
+      colorscheme slate
+   end
+else
+   set guifont=Envy\ Code\ R\ 16
+end
+
 " Map Ctrl-E Ctrl-W to toggle linewrap option like in VS
 noremap <C-E><C-W> :set wrap!<CR>
 " Map Ctrl-M Ctrl-L to expand all folds like in VS
@@ -58,7 +60,7 @@ set history=50 " keep track of last commands
 set number ruler " show line numbers
 set incsearch " incremental searching on
 set hlsearch " highlight all matches
-set ignorecase
+set smartcase
 set cursorline
 set selectmode=key
 set showtabline=2 " show always for console version
@@ -87,11 +89,6 @@ if !has("gui_running")
    nmap <Leader><F4> :tabclose<cr>
 end
 
-" make tab and shift-tab work like windows
-vmap <silent> <Tab>        :<C-u>call Cream_indent("v")<CR>
-imap <silent> <S-Tab> <C-o>:call Cream_unindent("i")<CR>
-vmap <silent> <S-Tab>      :<C-u>call Cream_unindent("v")<CR>
-
 " Windows like movements for long lines with wrap enabled:
 noremap j gj
 noremap k gk
@@ -110,7 +107,7 @@ au BufNewFile,BufRead *.xaml  setf xml
 au BufNewFile,BufRead *.xoml  setf xml
 au BufNewFile,BufRead *.blogTemplate  setf xhtml
 au BufNewFile,BufRead *.brail  setf xhtml
-au BufNewFile,BufRead *.rst  setf html
+au BufNewFile,BufRead *.rst  setf xml
 au BufNewFile,BufRead *.rsb  setf xml
 au BufNewFile,BufRead *.io  setf io
 au BufNewFile,BufRead *.notes setf notes
@@ -202,87 +199,6 @@ function MyTabLabel(n)
   let buflist = tabpagebuflist(a:n)
   let winnr = tabpagewinnr(a:n)
   return bufname(buflist[winnr - 1])
-endfunction
-
-
-
-"
-" helper functions from Cream
-"
-function! Cream_pos(...)
-" return current position in the form of an executable command
-" Origins: Benji Fisher's foo.vim, available at
-"          http://vim.sourceforge.net
-
-	"let mymark = "normal " . line(".") . "G" . virtcol(".") . "|"
-	"execute mymark
-	"return mymark
-
-	" current pos
-	let curpos = line(".") . "G" . virtcol(".") . "|"
-
-	" mark statement
-	let mymark = "normal "
-
-	" go to screen top
-	normal H
-	let mymark = mymark . line(".") . "G"
-	" go to screen bottom
-	normal L
-	let mymark = mymark . line(".") . "G"
-
-	" go back to curpos
-	execute "normal " . curpos
-
-	" cat top/bottom screen marks to curpos
-	let mymark = mymark . curpos
-
-	execute mymark
-	return mymark
-
-endfunction
-
-function! Cream_indent(mode)
-	if a:mode == "v"
-		normal gv
-		normal >
-		normal gv
-	endif
-endfunction
-
-function! Cream_unindent(mode)
-	if a:mode == "v"
-		normal gv
-		normal <
-		normal gv
-	elseif a:mode == "i"
-		let mypos = Cream_pos()
-		" select line and unindent
-		normal V
-		normal <
-		execute mypos
-		" now adjust for shift
-		let i = 0
-		let myline = line('.')
-		while i < &tabstop
-			normal h
-			" oops, go back to current line if we jumped up
-			if line('.') < myline
-				normal l
-			endif
-			let i = i + 1
-		endwhile
-		" select one char so
-		" * user can see a selection is in place
-		" * if tab is used immediately following this routine believes
-		"   the whole line is selected rather than inserting a single
-		"   tab
-		normal vl
-		if mode() == "v"
-			" change to select mode
-			execute "normal \<C-G>"
-		endif
-	endif
 endfunction
 
 "
