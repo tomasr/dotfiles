@@ -3,9 +3,15 @@ attrcolor b  ".I"
 termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
 #term "screen-256color"
 defbce "on"
-
 # Make scrolling work with Ctrl+A [
 defscrollback 5000
-
 # Fix scrolling in some terminals
 termcapinfo xterm* ti@:te@
+# add bottom line with list of windows
+caption always "%-w%{b}%n %t%{d}%+w"
+# get rid of annoying flicker on tab completion
+vbell off
+# get rid of "splash screen"
+startup_message off
+termcapinfo * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
+hardstatus string "[%n %t] %h"
