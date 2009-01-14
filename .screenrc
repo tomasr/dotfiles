@@ -8,10 +8,15 @@ defscrollback 5000
 # Fix scrolling in some terminals
 termcapinfo xterm* ti@:te@
 # add bottom line with list of windows
-caption always "%-w%{b}%n %t%{d}%+w"
+hardstatus alwayslastline '%{= B} %H %= %{= k}%-w%{+b G}%n*%t%{-b G}%{k}%+w %= %{c}%d %D %{M}%c '
 # get rid of annoying flicker on tab completion
 vbell off
 # get rid of "splash screen"
 startup_message off
 termcapinfo * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
-hardstatus string "[%n %t] %h"
+
+# startup sessions
+screen -t sh 0
+screen -t irssi 1
+select 0
+

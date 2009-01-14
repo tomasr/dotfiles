@@ -22,7 +22,7 @@ fi
 
 # Comment in the above and uncomment this below for a color prompt
 case "$TERM" in
-xterm*|rxvt*|screen*)
+xterm*|rxvt*|screen*|cygwin*)
 #   PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\h\[\033[00m\] {\[\033[36m\]\w\[\033[00m\]} '
    PS1='${debian_chroot:+($debian_chroot)}\[\033[1;36m\]§ \[\033[1;32m\]\h\[\033[0;36m\] {\[\033[1;36m\]\w\[\033[0;36m\]}\[\033[39m\] '
     ;;
@@ -69,6 +69,9 @@ export JAVA_HOME="$TOOLS/jdk1.6.0_11"
 export PATH=$TOOLS/jdk1.6.0_11/bin:$TOOLS/maven/bin:$TOOLS/nant-0.85/bin:$PATH
 export RUBYOPT=rubygems
 export GEM_HOME=$TOOLS/gems_repo
+
+alias grep='grep --color'
+export EDITOR=vim
 
 #
 # run fortune at startup
