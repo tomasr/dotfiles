@@ -42,10 +42,12 @@ if has("win32") || has("win64")
    set shellcmdflag=-c
    set shellpipe=>
    set shellredir=>
+   set directory=$TMP
    if !has("gui_running")
       colorscheme slate
    end
 else
+   set directory=/tmp
    set guifont=Envy\ Code\ R\ 16
 end
 
@@ -65,13 +67,13 @@ set cursorline
 set selectmode=key
 set showtabline=2 " show always for console version
 set tabline=%!MyTabLine()
+set wildmenu " menu on statusbar for command autocomplete
 " default to UTF-8 encoding
 set encoding=utf8
 set fileencoding=utf8
 
 " no beep
 autocmd VimEnter * set vb t_vb= 
-
 
 " tab navigation like firefox
 nmap <C-S-tab> :tabprevious<cr>
@@ -162,7 +164,6 @@ map <Leader>sn :setlocal nospell<CR>
 " Other stuff
 "
 runtime 'macros/matchit.vim'
-set wildmenu " menu on statusbar for command autocomplete
 
 " 
 " Configure tabs for the console version
