@@ -152,6 +152,12 @@ function get-hash($value, $hashalgo = 'MD5') {
    $hash = [security.cryptography.hashalgorithm]::Create($hashalgo)
    return convert-tobinhex($hash.ComputeHash($tohash));
 }
+function escape-html($text) {
+   $text = $text.Replace('&', '&amp;')
+   $text = $text.Replace('"', '&quot;')
+   $text = $text.Replace('<', '&lt;')
+   $text.Replace('>', '&gt;')
+}
 
 # load session helpers
 ."$SCRIPTS\sessions.ps1"
