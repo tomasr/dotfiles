@@ -22,6 +22,7 @@ else
    let g:obviousModeInsertHi = "ctermfg=253 ctermbg=16"
 endif
 
+set modeline
 set tabstop=3 " tab size = 3
 set shiftwidth=3 " soft space = 3
 set smarttab
