@@ -1,6 +1,6 @@
 " ku source: source
-" Version: 0.0.0
-" Copyright (C) 2008 kana <http://whileimautomaton.net/>
+" Version: 0.1.0
+" Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -34,23 +34,29 @@ let s:the_old_input_pattern = ''
 
 
 " Interface  "{{{1
-function! ku#source#event_handler(event, ...)  "{{{2
-  if a:event ==# 'SourceEnter'
-    let s:cached_items = map(copy(ku#available_sources()), '{"word": v:val}')
-    let s:the_old_input_pattern = ku#set_the_current_input_pattern('')
-    return
-  elseif a:event ==# 'SourceLeave'
-    call ku#set_the_current_input_pattern(s:the_old_input_pattern)
-    return
-  else
-    return call('ku#default_event_handler', [a:event] + a:000)
-  endif
+function! ku#source#available_sources()  "{{{2
+  return ['source']
 endfunction
 
 
 
 
-function! ku#source#action_table()  "{{{2
+function! ku#source#on_source_enter(source_name_ext)  "{{{2
+  let s:cached_items = map(copy(ku#available_sources()), '{"word": v:val}')
+  let s:the_old_input_pattern = ku#set_the_current_input_pattern('')
+endfunction
+
+
+
+
+function! ku#source#on_source_leave(source_name_ext)  "{{{2
+  call ku#set_the_current_input_pattern(s:the_old_input_pattern)
+endfunction
+
+
+
+
+function! ku#source#action_table(source_name_ext)  "{{{2
   return {
   \   'default': 'ku#source#action_open',
   \   'open': 'ku#source#action_open',
@@ -60,7 +66,7 @@ endfunction
 
 
 
-function! ku#source#key_table()  "{{{2
+function! ku#source#key_table(source_name_ext)  "{{{2
   return {
   \   "\<C-o>": 'open',
   \   'o': 'open',
@@ -70,8 +76,15 @@ endfunction
 
 
 
-function! ku#source#gather_items(pattern)  "{{{2
+function! ku#source#gather_items(source_name_ext, pattern)  "{{{2
   return s:cached_items
+endfunction
+
+
+
+
+function! ku#source#special_char_p(source_name_ext, character)  "{{{2
+  return 0
 endfunction
 
 

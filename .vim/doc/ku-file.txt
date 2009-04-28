@@ -1,7 +1,7 @@
 *ku-file.txt*	ku source: file
 
-Version 0.0.2
-Copyright (C) 2008 kana <http://whileimautomaton.net/>
+Version 0.1.0
+Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -43,7 +43,7 @@ choose one from many files and directories and do some action to it.
 
 Requirements:
 - Vim 7.1.299 or later
-- |ku| 0.1.0 or later (vimscript#2337)
+- |ku| 0.2.0 or later (vimscript#2337)
 
 Latest version:
 http://github.com/kana/config/commits/vim-ku-file
@@ -90,6 +90,9 @@ BUGS						*ku-file-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-file-changelog*
+
+0.1.0	2009-04-27T02:49:51+09:00/2009-04-28T02:00:05+09:00
+	- Update for ku 0.2.0.
 
 0.0.2	2008-12-24T14:08:50+09:00
 	- Fix the bug that a file or a directory which path contains a space

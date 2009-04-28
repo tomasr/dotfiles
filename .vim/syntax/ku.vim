@@ -1,6 +1,6 @@
 " Vim syntax: ku
-" Version: 0.1.8
-" Copyright (C) 2008 kana <http://whileimautomaton.net/>
+" Version: 0.2.0
+" Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -34,7 +34,7 @@ syntax case match
 syntax match kuStatusLine /\%1l.*/
 \            contains=kuSourcePrompt,kuSourceName,kuHistoryInfo
 syntax match kuSourcePrompt /^Source/ contained
-syntax match kuSourceName /: \zs[a-zA-Z-]*/ contained
+syntax match kuSourceName /: \zs[a-zA-Z\/]*/ contained
 syntax match kuHistoryInfo ! (\zs\d+/\d+\ze)$! contained
 
 syntax match kuInputLine /\%2l.*/ contains=kuInputPrompt

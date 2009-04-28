@@ -1,6 +1,6 @@
-" ku - Support to do something
-" Version: 0.1.8
-" Copyright (C) 2008 kana <http://whileimautomaton.net/>
+" ku - An interface for anything
+" Version: 0.2.0
+" Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,6 +23,12 @@
 " }}}
 " Variables  "{{{1
 " Global  "{{{2
+
+" Behavior about auto component completion.
+if !exists('g:ku_acc_style')
+  let g:ku_acc_style = ''  " A comma-separated list of words.
+endif
+
 
 " The name of the ku buffer.
 if !exists('g:ku_buffer_name')
@@ -58,6 +64,9 @@ endif
 if !exists('g:ku_history_size')
   let g:ku_history_size = 1000
 endif
+if !exists('g:ku_history_reloading_style')
+  let g:ku_history_reloading_style = 'idle'
+endif
 
 
 
@@ -71,6 +80,9 @@ let s:TRUE = !s:FALSE
   " Magic line numbers in the ku buffer.
 let s:LNUM_STATUS = 1
 let s:LNUM_INPUT = 2
+
+  " Path separator.
+let s:PATH_SEP = exists('+shellslash') && &shellslash ? '\' : '/'
 
 
 " The buffer number of the ku buffer.
@@ -177,27 +189,7 @@ function! ku#available_sources()  "{{{2
     return s:available_sources
   endif
 
-  let _ = s:FALSE
-
-  if s:normal_source_cache_expired_p()
-    call s:update_normal_source_cache()
-    let _ = s:TRUE
-  endif
-
-  if s:special_source_cache_expired_p()
-    call s:update_special_source_cache()
-    let _ = s:TRUE
-  endif
-
-  if s:source_priorities_changed_p
-    let s:source_priorities_changed_p = s:FALSE
-    let _ = s:TRUE
-  endif
-
-  if _
-    let s:available_sources = s:sort_sources(s:available_normal_sources
-    \                                        + s:available_special_sources)
-  endif
+  let s:available_sources = sort(s:calculate_available_sources())
 
   let s:_session_id_source_cache = s:session_id
   return s:available_sources
@@ -207,46 +199,15 @@ if !exists('s:available_sources')
   let s:available_sources = []  " [source-name, ...]
 endif
 let s:_session_id_source_cache = 0
-let s:source_priorities_changed_p = s:TRUE
 
 
-" cache for normal sources  "{{{3
-let s:available_normal_sources = []  " [source-name, ...]
-let s:last_normal_source_directory_timestamps = []  " [timestamp, ...]
-let s:current_normal_source_directory_timestamps = []  " [timestamp, ...]
-
-function! s:normal_source_cache_expired_p()
-  let s:current_normal_source_directory_timestamps
-  \   = map(s:runtime_files('autoload/ku/'), 'getftime(v:val)')
-
-  return s:current_normal_source_directory_timestamps
-  \      != s:last_normal_source_directory_timestamps
-endfunction
-
-function! s:update_normal_source_cache()
-  let s:available_normal_sources = map(s:runtime_files('autoload/ku/*.vim'),
-  \                                    'fnamemodify(v:val, ":t:r")')
-
-  let s:last_normal_source_directory_timestamps
-  \   = s:current_normal_source_directory_timestamps
-endfunction
-
-
-" cache for special sources  "{{{3
-" FIXME: Implement proper caching.  The following interface is just to hide
-"        the detail of caching.
-let s:available_special_sources = []  " [source-name, ...]
-
-function! s:special_source_cache_expired_p()
-  return s:TRUE
-endfunction
-
-function! s:update_special_source_cache()
-  let s:available_special_sources = []
-  for f in s:runtime_files('autoload/ku/special/*_.vim')
-    let s:available_special_sources
-    \   += ku#special#{fnamemodify(f, ':t:r')}#sources()
+function! s:calculate_available_sources()
+  let _ = []
+  for source_name_base in map(s:runtime_files('autoload/ku/*.vim'),
+  \                           'fnamemodify(v:val, ":t:r")')
+    call extend(_, s:api_available_sources(source_name_base))
   endfor
+  return _
 endfunction
 
 
@@ -281,7 +242,7 @@ endfunction
 
 function! s:ku_custom_action_4(source, action, source2, action2)  "{{{3
   let action_table = (a:source2 !=# 'common'
-  \                   ? s:api(a:source2, 'action_table')
+  \                   ? s:api_action_table(a:source2)
   \                   : s:default_action_table())
   let function2 = get(action_table, a:action2, 0)
   if function2 is 0
@@ -335,22 +296,6 @@ function! ku#custom_priority(source, priority)  "{{{2
   endif
 
   let s:priority_table[a:source] = a:priority
-
-  let s:source_priorities_changed_p = s:TRUE
-endfunction
-
-
-
-
-function! ku#default_event_handler(event, ...)  "{{{2
-  if a:event ==# 'BeforeAction'
-    return a:1
-  else
-    " a:event ==# 'SourceEnter'
-    " a:event ==# 'SourceLeave'
-    "   Nothing to do.
-    return
-  endif
 endfunction
 
 
@@ -480,7 +425,7 @@ function! ku#start(source, ...)  "{{{2
   " Start Insert mode.
   call feedkeys('A', 'n')
 
-  call s:api(s:current_source, 'event_handler', 'SourceEnter')
+  call s:api_on_source_enter(s:current_source)
   return s:TRUE
 endfunction
 
@@ -509,73 +454,218 @@ endfunction
 
 
 " Core  "{{{1
-function! ku#_omnifunc(findstart, base)  "{{{2
-  " FIXME: caching
+" Completion  "{{{2
+" Variables on omnifunc  "{{{3
+
+let s:_OMNIFUNC_INVALID = []  " to indicate values not in the cache.
+let s:_omnifunc_cache = {}  " '{source}{prompt}{pattern}' => [item, ...]
+let s:_omnifunc_session_id = 0  " to clear the cache for each ku session.
+
+
+function! ku#_omnifunc(findstart, base)  "{{{3
   " items = a list of items
   " item = a dictionary as described in :help complete-items.
-  "        '^_ku_.*$' - additional keys used by ku.
-  "        '^_{source}_.*$' - additional keys used by {source}.
+  "        '^ku__.*$' - additional keys used by ku.
+  "        '^ku_{source}_.*$' - additional keys used by {source}.
   if a:findstart
     let s:last_completed_items = []
+    if s:_omnifunc_session_id != s:session_id
+      " Clear the cache for each ku session.
+      let s:_omnifunc_cache = {}
+      let s:_omnifunc_session_id = s:session_id
+    endif
     return 0
   else
     let pattern = s:expand_prefix(s:remove_prompt(a:base))
 
-    let asis_regexp = s:make_asis_regexp(pattern)
-    let word_regexp = s:make_word_regexp(pattern)
-    let skip_regexp = s:make_skip_regexp(pattern)
+    let cache_key = s:_omnifunc_cache_key(pattern)
+    let cached_value = get(s:_omnifunc_cache, cache_key, s:_OMNIFUNC_INVALID)
+    if cached_value is s:_OMNIFUNC_INVALID
+      if pattern == '' || s:api_special_char_p(s:current_source, pattern[-1:])
+        " Base cases.
+        let _ = s:_omnifunc_core(
+        \         s:current_source,
+        \         pattern,
+        \         s:api_gather_items(s:current_source, pattern)
+        \       )
+      else
+        " The last character (which seems to be typed by user)
+        " is not a special character i.e. ordinary character.
+        " Make a list of items
+        " by filtering a cache for a base case to the given pattern.
+        let _ = s:_omnifunc_core(
+        \         s:current_source,
+        \         pattern,
+        \         ku#_omnifunc(s:FALSE, s:_omnifunc_base_case_pattern(pattern))
+        \       )
+      endif
 
-    let s:last_completed_items
-    \   = copy(s:api(s:current_source, 'gather_items', pattern))
-    for _ in s:last_completed_items
-      let _['_ku_completed_p'] = s:TRUE
-      let _['_ku_source'] = s:current_source
-      let _['_ku_sort_priorities'] = [
-      \     has_key(_, '_ku_sort_priority') ? _['_ku_sort_priority'] : 0,
-      \     _.word =~# g:ku_common_junk_pattern,
-      \     (exists('g:ku_{s:current_source}_junk_pattern')
-      \      && _.word =~# g:ku_{s:current_source}_junk_pattern),
-      \     s:match(_.word, '\C' . asis_regexp),
-      \     s:matchend(_.word, '\C' . asis_regexp),
-      \     s:match(_.word, '\c' . asis_regexp),
-      \     s:matchend(_.word, '\c' . asis_regexp),
-      \     s:match(_.word, '\C' . word_regexp),
-      \     s:matchend(_.word, '\C' . word_regexp),
-      \     s:match(_.word, '\c' . word_regexp),
-      \     s:matchend(_.word, '\c' . word_regexp),
-      \     match(_.word, '\C' . skip_regexp),
-      \     matchend(_.word, '\C' . skip_regexp),
-      \     match(_.word, '\c' . skip_regexp),
-      \     matchend(_.word, '\c' . skip_regexp),
-      \     _.word,
-      \   ]
-    endfor
-
-      " Remove items not matched to case-insensitive skip_regexp, because user
-      " doesn't want such items to be completed.
-      " BUGS: Don't forget to update the index for the matched position of
-      "       case-insensitive skip_regexp.
-    call filter(s:last_completed_items, '0 <= v:val._ku_sort_priorities[-3]')
-    call sort(s:last_completed_items, function('s:_compare_items'))
-    if exists('g:ku_debug_p') && g:ku_debug_p
-      echomsg 'base' string(a:base)
-      echomsg 'asis' string(asis_regexp)
-      echomsg 'word' string(word_regexp)
-      echomsg 'skip' string(skip_regexp)
-      for _ in s:last_completed_items
-        echomsg string(_._ku_sort_priorities)
-      endfor
+      let cached_value = _
+      let s:_omnifunc_cache[cache_key] = _
+    else
     endif
+
+    let s:last_completed_items = cached_value
+
     return s:last_completed_items
   endif
 endfunction
 
 
-function! s:_compare_items(a, b)
-  return s:_compare_lists(a:a._ku_sort_priorities, a:b._ku_sort_priorities)
+function! ku#_omnifunc_profile(source, pattern, ...)  "{{{3
+  let n = a:0 ? a:1 : 1
+  let base_time = reltime()
+
+  let raw_items = s:api_gather_items(a:source, a:pattern)
+  let gathering_time = reltime(base_time)
+
+  let base_time = reltime()
+  for _ in range(n)
+    let filtered_items = s:_omnifunc_core(a:source, a:pattern, raw_items)
+  endfor
+  let filtering_time = reltime(base_time)
+
+  return [reltimestr(gathering_time), reltimestr(filtering_time)]
 endfunction
 
-function! s:_compare_lists(a, b)
+
+function! s:_omnifunc_core(current_source, pattern, items)  "{{{3
+  " NB: This function doesn't know about the cache.
+  let INFINITY = 2147483647  " to easily sort by ku__sort_priorities.
+
+  " Prefix assumption - By automatic component completion, it's hard to insert
+  " text with uncompleted "prefix", so that "prefix" is excluded to match.
+  let i = match(a:pattern,
+  \             s:regexp_not_any_char_of(g:ku_component_separators) . '\*\$')
+  let prefix = i == 0 ? '' : a:pattern[:i-1]
+  let pattern = a:pattern[(i):]
+  let empty_pattern_p = pattern == ''
+
+  let asis_regexp = s:make_asis_regexp(pattern)
+  let word_regexp = s:make_word_regexp(pattern)
+  let skip_regexp = s:make_skip_regexp(pattern)
+  if empty_pattern_p
+    " Dummy values for ku__sort_priorities,
+    " because match()/matchend() are skipped for empty "pattern" for speed-up.
+    let asis_C_ms = 0
+    let asis_c_ms = 0
+    let skip_C_me = 0
+    let skip_C_ms = 0
+    let skip_c_me = 0
+    let skip_c_ms = 0
+    let word_C_me = 0
+    let word_C_ms = 0
+    let word_c_me = 0
+    let word_c_ms = 0
+  endif
+
+  let source_junk_pattern = (exists('g:ku_{a:current_source}_junk_pattern')
+  \                          ? g:ku_{a:current_source}_junk_pattern
+  \                          : 0)
+  let re_acc_sep = '\ze' . s:regexp_any_char_of(g:ku_component_separators)
+
+  let items = copy(a:items)
+  if 0 < i  " ensure prefix assumption
+    call filter(items, 'v:val.word[:i-1] ==# prefix')
+  endif
+  for _ in items
+    let _['ku__completed_p'] = s:TRUE
+    let _['ku__source'] = a:current_source
+
+    if empty_pattern_p
+      " To skip unnecessary checkings in s:_omnifunc_compare_lists(),
+      " use the unique part of _.word which is matched to patterns.
+      let asis_C_ms = substitute(_.word[(i):], re_acc_sep, ' ', 'g')
+      let word = 0
+    else
+      " Skip many match()/matchend() callings by the following conditions:
+      " (a) If match() is failed for a pattern,
+      "     it's not necessary to call matchend() for that pattern.
+      " (b) If a case-insensitive pattern is not matched,
+      "     the corresponding case-sensitive pattern is not also matched.
+      " (c) If a "skip" pattern is not matched,
+      "     the corresponding "word" pattern is not also matched.
+      "     If a "word" pattern is not matched,
+      "     the corresponding "asis" pattern is not also matched.
+        " Cases (c)
+      let skip_c_ms = match(_.word, '\c' . skip_regexp, i)
+      let word_c_ms = skip_c_ms < 0 ? -1 : match(_.word, '\c' . word_regexp, i)
+      let asis_c_ms = word_c_ms < 0 ? -1 : match(_.word, '\c' . asis_regexp, i)
+        " Cases (b)
+      let skip_C_ms = skip_c_ms < 0 ? -1 : match(_.word, '\C' . skip_regexp, i)
+      let word_C_ms = word_c_ms < 0 ? -1 : match(_.word, '\C' . word_regexp, i)
+      let asis_C_ms = asis_c_ms < 0 ? -1 : match(_.word, '\C' . asis_regexp, i)
+        " Cases (a)
+      let skip_c_me = skip_c_ms < 0 ? -1 : matchend(_.word,'\c'.skip_regexp, i)
+      let skip_C_me = skip_C_ms < 0 ? -1 : matchend(_.word,'\C'.skip_regexp, i)
+      let word_c_me = word_c_ms < 0 ? -1 : matchend(_.word,'\c'.word_regexp, i)
+      let word_C_me = word_C_ms < 0 ? -1 : matchend(_.word,'\C'.word_regexp, i)
+
+      let asis_C_ms = asis_C_ms < 0 ? INFINITY : asis_C_ms
+      let asis_c_ms = asis_c_ms < 0 ? INFINITY : asis_c_ms
+      let word_C_me = word_C_me < 0 ? INFINITY : word_C_me
+      let word_C_ms = word_C_ms < 0 ? INFINITY : word_C_ms
+      let word_c_me = word_c_me < 0 ? INFINITY : word_c_me
+      let word_c_ms = word_c_ms < 0 ? INFINITY : word_c_ms
+
+      let word = substitute(_.word[(i):], re_acc_sep, ' ', 'g')
+    endif
+
+    let _['ku__sort_priorities'] = [
+    \     get(_, 'ku__sort_priority', 0),
+    \     _.word =~# g:ku_common_junk_pattern,
+    \     source_junk_pattern is 0 ? 0 : _.word =~# source_junk_pattern,
+    \     asis_C_ms,             asis_c_ms,
+    \     word_C_ms, word_C_me,  word_c_ms, word_c_me,
+    \     skip_C_ms, skip_C_me,  skip_c_ms, skip_c_me,
+    \     word,
+    \   ]
+  endfor
+
+    " Remove items not matched to case-insensitive skip_regexp, because user
+    " doesn't want such items to be completed.
+    " BUGS: Don't forget to update the index for the matched position of
+    "       case-insensitive skip_regexp.
+  call filter(items, '0 <= v:val.ku__sort_priorities[-3]')
+  call sort(items, function('s:_omnifunc_compare_items'))
+
+  if exists('g:ku_debug_p') && g:ku_debug_p
+    echomsg 'pattern' string(a:pattern)
+    echomsg 'asis' string(asis_regexp)
+    echomsg 'word' string(word_regexp)
+    echomsg 'skip' string(skip_regexp)
+    for _ in items
+      echomsg string(_.ku__sort_priorities)
+    endfor
+  endif
+  return items
+endfunction
+
+
+function! s:_omnifunc_base_case_pattern(pattern)  "{{{3
+  let i = len(a:pattern) - 1
+  while (0 <= i
+  \      && !s:api_special_char_p(s:current_source, a:pattern[i])
+  \      && !has_key(s:_omnifunc_cache, s:_omnifunc_cache_key(a:pattern[:i])))
+    let i -= 1
+  endwhile
+
+  return 0 <= i ? a:pattern[:i] : ''
+endfunction
+
+
+function! s:_omnifunc_cache_key(pattern)  "{{{3
+  return s:current_source . s:PROMPT . a:pattern
+endfunction
+
+
+function! s:_omnifunc_compare_items(a, b)  "{{{3
+  return s:_omnifunc_compare_lists(a:a.ku__sort_priorities,
+  \                                a:b.ku__sort_priorities)
+endfunction
+
+
+function! s:_omnifunc_compare_lists(a, b)  "{{{3
   " Assumption: len(a:a) == len(a:b)
   for i in range(len(a:a))
     if a:a[i] < a:b[i]
@@ -615,7 +705,7 @@ function! s:do(action_name)  "{{{2
       " there's no item -- user seems to take action on current_user_input_raw.
       let item = {'word':
       \             s:expand_prefix(s:remove_prompt(current_user_input_raw)),
-      \           '_ku_completed_p': s:FALSE}
+      \           'ku__completed_p': s:FALSE}
     endif
   endif
 
@@ -636,7 +726,7 @@ function! s:do(action_name)  "{{{2
   else
     call s:history_add(s:remove_prompt(s:last_used_input_pattern),
     \                  s:last_used_source)
-    let item = s:api(s:current_source, 'event_handler', 'BeforeAction', item)
+    let item = s:api_on_before_action(s:current_source, item)
     call s:do_action(action, item)
     if a:action_name ==# '*persistent*'
       call ku#restart()
@@ -669,7 +759,7 @@ function! s:end()  "{{{2
   let s:last_used_input_pattern = s:last_user_input_raw
   let s:last_used_source = s:current_source
 
-  call s:api(s:current_source, 'event_handler', 'SourceLeave')
+  call s:api_on_source_leave(s:current_source)
   close
 
   let &completeopt = s:completeopt
@@ -862,7 +952,10 @@ function! s:on_CursorMovedI()  "{{{2
         let keys = "\<End>" . line[-1:]
         let s:automatic_component_completion_done_p = s:TRUE
       else
-        let keys = s:KEYS_TO_START_COMPLETION
+          " Delete the last inserted character to express that ACC is failed.
+        let keys = (g:ku_acc_style =~# '\<rejection\>'
+        \           ? "\<C-h>"
+        \           : s:KEYS_TO_START_COMPLETION)
         let s:automatic_component_completion_done_p = s:FALSE
       endif
     else
@@ -963,8 +1056,8 @@ function! s:switch_current_source(new_source)  "{{{2
     return s:FALSE
   endif
 
-  call s:api(_[o], 'event_handler', 'SourceLeave')
-  call s:api(_[n], 'event_handler', 'SourceEnter')
+  call s:api_on_source_leave(_[o])
+  call s:api_on_source_enter(_[n])
 
   let s:current_source = _[n]
   return s:TRUE
@@ -982,6 +1075,13 @@ endfunction
 
 augroup plugin-ku
   autocmd!
+  autocmd CursorHold *
+  \   if (g:ku_history_reloading_style ==# 'idle'
+  \       || g:ku_history_reloading_style ==# 'each')
+  \ |   call s:history_reload()
+  \ |   let s:after_idle_p = s:TRUE
+  \ | endif
+  autocmd CursorHoldI *  doautocmd plugin-ku CursorHold
   autocmd VimLeave *  call s:history_save()
 augroup END
 
@@ -1047,7 +1147,7 @@ function! s:text_by_automatic_component_completion(line)  "{{{3
   "     completion text will be 'usr/share/man', because user seems to want to
   "     complete till the component which matches to 'm'.
   let items = copy(ku#_omnifunc(s:FALSE, a:line[:-2]))  " without the last SEP
-  for item in filter(items, 's:api(s:current_source,"acc_valid_p",v:val,SEP)')
+  for item in items
     let item_components = split(item.word, SEP, s:TRUE)
 
     if len(line_components) < 2
@@ -1071,14 +1171,33 @@ function! s:text_by_automatic_component_completion(line)  "{{{3
 
       " for the case (c), find the index of a component to be completed.
     let _ = len(line_components) - 2
-    for i in range(len(line_components) - 2, len(item_components) - 1)
-      if item_components[i] =~? s:make_skip_regexp(line_components[-2])
-        let _ = i
-        break
+    let p = '\c' . s:make_skip_regexp(line_components[-2])
+    let t = join(item_components[_ :], SEP)  " p may be matched many components
+    let i = matchend(t, p)
+    " echomsg 'line' string(a:line)
+    " echomsg 'item.word' string(item.word)
+    " echomsg '_' string(_)
+    " echomsg 'p' string(p)
+    " echomsg 't' string(t)
+    " echomsg 'i' string(i)
+    if 0 <= i
+      let j = stridx(t, SEP, i)
+      " echomsg 'j' string(j)
+      if 0 <= j
+        let result = item.word[:-(len(t)-j+1)]
+      elseif s:api_acc_valid_p(s:current_source, item, SEP)
+        " echomsg 'acc_valid_p'
+        let result = join(item_components[:_], SEP)
+      else
+        " echomsg '(c) failed'
+        continue
       endif
-    endfor
+    else
+      " By 'omnifunc', the last pattern matching must be succeeded.
+      echoerr 'Assumption is failed in auto component completion'
+      throw 'ku:e3'
+    endif
 
-    let result = join(item_components[:_], SEP)
     if prefix_expanded_p && stridx(result, text) == 0
       let result = prefix . result[len(text):]
     endif
@@ -1160,7 +1279,7 @@ endfunction
 function! s:get_action_function(action, composite_p)  "{{{3
   let ACTION_TABLE = (a:composite_p
   \                   ? s:composite_action_table(s:current_source)
-  \                   : s:api(s:current_source, 'action_table'))
+  \                   : s:api_action_table(s:current_source))
   if has_key(ACTION_TABLE, a:action)  " exists action?
     if ACTION_TABLE[a:action] !=# 'nop'  " enabled action?
       return ACTION_TABLE[a:action]
@@ -1328,7 +1447,7 @@ endfunction
 
 
 function! s:_default_action_default(item)  "{{{3
-  echoerr 'ku: Source' string(a:item._ku_source)
+  echoerr 'ku: Source' string(a:item.ku__source)
   \       'does not have the "default" action'
   return
 endfunction
@@ -1360,7 +1479,7 @@ function! s:composite_action_table(source)  "{{{3
   let action_table = {}
   for _ in [s:default_action_table(),
   \         s:custom_action_table('common'),
-  \         s:api(a:source, 'action_table'),
+  \         s:api_action_table(a:source),
   \         s:custom_action_table(a:source)]
     call extend(action_table, _)
   endfor
@@ -1405,7 +1524,7 @@ function! s:composite_key_table(source)  "{{{3
   let key_table = {}
   for _ in [s:default_key_table(),
   \         s:custom_key_table('common'),
-  \         s:api(a:source, 'key_table'),
+  \         s:api_key_table(a:source),
   \         s:custom_key_table(a:source)]
     call extend(key_table, _)
   endfor
@@ -1495,6 +1614,9 @@ let s:_current_source_expand_prefix3 = s:INVALID_SOURCE
 " History of inputted patterns  "{{{2
 " Variables / Constants  "{{{3
 
+let s:after_idle_p = s:FALSE  " to reload the history file after idle.
+" s:history_changed_p = s:FALSE
+" s:history_file_mtime = 0  " the last modified time of the history file.
 " s:inputted_patterns = []  " the first item is the newest inputted pattern.
 let s:HISTORY_FILE = 'info/ku/history'
 
@@ -1511,6 +1633,7 @@ function! s:history_add(new_input_pattern, source)  "{{{3
   if !{g:ku_history_added_p}(a:new_input_pattern, a:source)
     return
   endif
+
   call insert(s:inputted_patterns,
   \           {'pattern': a:new_input_pattern,
   \            'source': a:source,
@@ -1520,6 +1643,8 @@ function! s:history_add(new_input_pattern, source)  "{{{3
   if g:ku_history_size < len(s:inputted_patterns)
     unlet s:inputted_patterns[(g:ku_history_size):]
   endif
+
+  let s:history_changed_p = s:TRUE
 endfunction
 
 function! ku#_history_added_p(new_input_pattern, source)
@@ -1530,35 +1655,65 @@ endfunction
 
 
 function! s:history_file()  "{{{3
-  " FIXME: path separator assumption
-  return printf('%s/%s', split(&runtimepath, ',')[0], s:HISTORY_FILE)
+  return split(&runtimepath, ',')[0] . s:PATH_SEP . s:HISTORY_FILE
 endfunction
 
 
 function! s:history_list()  "{{{3
+  if (g:ku_history_reloading_style ==# 'each'
+  \   || (g:ku_history_reloading_style ==# 'idle' && s:after_idle_p))
+    call s:history_reload()
+    let s:after_idle_p = s:FALSE
+  endif
   return s:inputted_patterns
 endfunction
 
 
 function! s:history_load()  "{{{3
+  let _ = []
   if filereadable(s:history_file())
-    let s:inputted_patterns = []
     for line in readfile(s:history_file(), '', g:ku_history_size)
       let columns = split(line, '\t')
-      call add(s:inputted_patterns, {
+      call add(_, {
       \      'pattern': columns[0],
       \      'source': 2 <= len(columns) ? columns[1] : s:INVALID_SOURCE,
       \      'time': 3 <= len(columns) ? str2nr(columns[2]) : 0,
       \    })
     endfor
-  else
-    let s:inputted_patterns = []
   endif
+  return _
 endfunction
 
 if !exists('s:inputted_patterns')
-  call s:history_load()
+  let s:inputted_patterns = s:history_load()
+  let s:history_file_mtime = getftime(s:history_file())
+  let s:history_changed_p = s:FALSE
 endif
+
+
+function! s:history_reload()  "{{{3
+  let file = s:history_file()
+  let mtime = getftime(file)
+  if mtime == -1  " history file is not found
+    let s:history_changed_p = s:TRUE
+  elseif mtime != s:history_file_mtime  " history file is updated
+    let current_history = s:inputted_patterns
+    let new_history = s:history_load()
+    let s:inputted_patterns = s:merge_histories(current_history, new_history)
+    let s:history_changed_p = s:TRUE
+  else
+    " history file is not changed
+  endif
+
+  if s:history_changed_p
+    call s:history_save()
+    let s:history_file_mtime = getftime(file)
+    let s:history_changed_p = s:FALSE
+  endif
+  return
+endfunction
+
+
 
 
 function! s:history_save()  "{{{3
@@ -1568,7 +1723,7 @@ function! s:history_save()  "{{{3
     call mkdir(directory, 'p')
   endif
 
-  call writefile(map(copy(s:history_list()),
+  call writefile(map(copy(s:inputted_patterns),
   \                  'v:val.pattern ."\t". v:val.source ."\t". v:val.time'),
   \              file)
 endfunction
@@ -1576,21 +1731,89 @@ endfunction
 
 
 
-function! s:api(source_name, api_name, ...)  "{{{2
-  let _ = matchstr(a:source_name, '^[a-z]\+\ze-')
+" Source API wrappers  "{{{2
+function! s:api_acc_valid_p(source_name, item, separator)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
 
-  if _ == ''  " normal source
-    let func = printf('ku#%s#%s', a:source_name, a:api_name)
-    let args = a:000
-  else  " special source
-    let func = printf('ku#special#%s#%s', _, a:api_name)
-    let args = [a:source_name] + a:000
+  let _ = 'ku#'.source_name_base.'#acc_valid_p'
+  if exists('*{_}')
+    return {_}(source_name_ext, a:item, a:separator)
+  else
+    return s:FALSE
   endif
+endfunction
 
-  if a:api_name ==# 'acc_valid_p' && !exists('*' . func)
-    return s:TRUE
+
+function! s:api_action_table(source_name)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  return ku#{source_name_base}#action_table(source_name_ext)
+endfunction
+
+
+function! s:api_available_sources(source_name_base)  "{{{3
+  " Unlike other Source API functions,
+  " - This function takes source_name_base instead of source_name.
+  " - Sources must define this API.
+  return ku#{a:source_name_base}#available_sources()
+endfunction
+
+
+function! s:api_gather_items(source_name, pattern)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  return ku#{source_name_base}#gather_items(source_name_ext, a:pattern)
+endfunction
+
+
+function! s:api_key_table(source_name)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  return ku#{source_name_base}#key_table(source_name_ext)
+endfunction
+
+
+function! s:api_on_before_action(source_name, item)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  let _ = 'ku#'.source_name_base.'#on_before_action'
+  if exists('*{_}')
+    return {_}(source_name_ext, a:item)
+  else
+    return a:item
   endif
-  return call(func, args)
+endfunction
+
+
+function! s:api_on_source_enter(source_name)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  let _ = 'ku#'.source_name_base.'#on_source_enter'
+  if exists('*{_}')
+    call {_}(source_name_ext)
+  endif
+endfunction
+
+
+function! s:api_on_source_leave(source_name)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  let _ = 'ku#'.source_name_base.'#on_source_leave'
+  if exists('*{_}')
+    call {_}(source_name_ext)
+  endif
+endfunction
+
+
+function! s:api_special_char_p(source_name, character)  "{{{3
+  let [source_name_base, source_name_ext] = s:split_source_name(a:source_name)
+
+  let _ = 'ku#'.source_name_base.'#special_char_p'
+  if exists('*{_}')
+    return {_}(source_name_ext, a:character)
+  else
+    return 0 <= stridx(g:ku_component_separators, a:character)
+  endif
 endfunction
 
 
@@ -1662,31 +1885,37 @@ endfunction
 
 
 function! s:make_word_regexp(s)  "{{{2
-  " FIXME: path separator assumption
-  let p_asis = s:make_asis_regexp(substitute(a:s, '/', ' / ', 'g'))
+  let p_asis = s:make_asis_regexp(a:s)
   return substitute(p_asis, '\s\+', '\\.\\{-}', 'g')
 endfunction
 
 
 
 
-function! s:match(s, pattern)  "{{{2
-  " Like match(), but return a very big number (POINT_AT_INFINITY) to express
-  " that a:s is not matched to a:pattern.  This returning value is very useful
-  " to sort with matched positions.
-  let POINT_AT_INFINITY = 2147483647  " FIXME: valid value.
-  let i = match(a:s, a:pattern)
-  return 0 <= i ? i : POINT_AT_INFINITY
+function! s:merge_histories(a, b)  "{{{2
+  " cat
+  let _ = a:a + a:b
+
+  " sort
+  call sort(_, 's:_compare_by_time')
+  call reverse(_)
+
+  " uniq
+  let i = 0
+  while i < len(_)
+    while i + 1 < len(_) && _[i] ==# _[i+1]
+      call remove(_, i)
+      let i += 1
+    endwhile
+    let i += 1
+  endwhile
+
+  return _
 endfunction
 
 
-
-
-function! s:matchend(s, pattern)  "{{{2
-  " Like s:match(), but the meaning of returning value is same as matchend().
-  let POINT_AT_INFINITY = 2147483647  " FIXME: valid value.
-  let i = matchend(a:s, a:pattern)
-  return 0 <= i ? i : POINT_AT_INFINITY
+function! s:_compare_by_time(a, b)
+  return a:a.time < a:b.time ? -1 : (a:a.time > a:b.time ? 1 : 0)
 endfunction
 
 
@@ -1697,6 +1926,20 @@ function! s:ni_map(...)  "{{{2
     silent! execute _.'map' join(a:000)
   endfor
   return
+endfunction
+
+
+
+
+function! s:regexp_any_char_of(cs)  "{{{2
+  return '\V\[' . escape(a:cs, '\[]') . ']'
+endfunction
+
+
+
+
+function! s:regexp_not_any_char_of(cs)  "{{{2
+  return '\V\[^' . escape(a:cs, '\[]^') . ']'
 endfunction
 
 
@@ -1715,6 +1958,14 @@ function! s:sort_sources(_)  "{{{2
   let _ = sort(_)
   let _ = map(_, 'v:val[3:]')  " Assumption: priority is 3-digit integer.
   return _
+endfunction
+
+
+
+
+function! s:split_source_name(source_name)  "{{{2
+  " ==> [source_name_base, source_name_ext]
+  return split(a:source_name.'/', '/', s:TRUE)[:1]
 endfunction
 
 

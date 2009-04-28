@@ -1,7 +1,7 @@
 *ku-source.txt*	ku source: source
 
-Version 0.0.0
-Copyright (C) 2008 kana <http://whileimautomaton.net/>
+Version 0.1.0
+Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -48,7 +48,7 @@ whenever the current source is switched to another source.
 
 Requirements:
 - Vim 7.1.299 or later
-- |ku| 0.1.7 or later (vimscript#2337)
+- |ku| 0.2.0 or later (vimscript#2337)
 
 Latest version:
 http://github.com/kana/config/commits/vim-ku-source
@@ -92,6 +92,9 @@ BUGS						*ku-source-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-source-changelog*
+
+0.1.0	2009-04-27T02:50:59+09:00
+	- Update for ku 0.2.0.
 
 0.0.0	2008-12-09T16:54:28+09:00
 	- Initial version.

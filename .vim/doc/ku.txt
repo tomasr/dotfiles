@@ -1,8 +1,8 @@
-*ku.txt*	Support to do something
+*ku.txt*	An interface for anything
 
-Version 0.1.8
+Version 0.2.0
 Script ID: 2337
-Copyright (C) 2008 kana <http://whileimautomaton.net/>
+Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -110,7 +110,7 @@ COMMANDS					*ku-commands*
 
 			The main purpose of this command is to define a key
 			mapping to execute a specified action without
-			choosing, like |<Plug>(do-the-default-action)|.
+			choosing, like |<Plug>(ku-do-the-default-action)|.
 			See |filetype-ku| for an example of usage.
 
 
@@ -239,13 +239,6 @@ ku#set_the_current_input_pattern({s})	  *ku#set_the_current_input_pattern()*
 
 			If ku is not active, just return 0.
 
-ku#restart()					*ku#restart()*
-			Call |ku#start()| with the last inputted pattern and
-			the last active source.
-
-			This is useful if you cancel a selection once,
-			but you want to continue the selection later.
-
 ku#start({source}, [{initial-pattern}])		*ku#start()*
 			Function version of |:Ku|.
 			If {initial-pattern} is given, it will be inserted
@@ -254,6 +247,13 @@ ku#start({source}, [{initial-pattern}])		*ku#start()*
 ku#switch_source({source})			*ku#switch_source()*
 			Change the current source to {source}.  This function
 			works only while ku is active.  Otherwise, do nothing.
+
+ku#restart()					*ku#restart()*
+			Call |ku#start()| with the last inputted pattern and
+			the last active source.
+
+			This is useful if you cancel a selection once,
+			but you want to continue the selection later.
 
 
 ------------------------------------------------------------------------------
@@ -341,8 +341,8 @@ Inserted characters in |the-ku-buffer| are treated as 3 "patterns".
 - The 1st one is "asis" pattern.  Ku tries to literally match user input to
   each item.
 
-- The 2nd one is "word" pattern.  User input is split by spaces or a slash,
-  and each space or slash is treated as a wild card, so it is matched to any
+- The 2nd one is "word" pattern.  User input is split by spaces,
+  and each space is treated as a wild card, so it is matched to any
   0 or more characters.  Ku tries to match this pattern for each item.
 
 - The last one is "skip" pattern.  Ku treats user input have a wild card
@@ -359,6 +359,17 @@ matched positions of case-sensitive way have higher priority than the ones of
 case-insensitive way.
 
 See also |g:ku_common_junk_pattern|.
+
+						*ku-pattern-prefix-assumption*
+Ku assumes that the "prefix" of a pattern is always matched to the head of
+each item, so that skips the "prefix" for pattern matching described in the
+above.
+
+Here the "prefix" of a pattern is defined as follows:
+1. Split the pattern with any character in |g:ku_component_separators|.
+2. Exclude the tail one from the pattern.  This is the "prefix".
+For example, the "prefix" of a pattern "/foo/bar/baz" is "/foo/bar/"
+(if g:ku_component_separators contains "/").
 
 
 AUTO COMPONENT COMPLETION			*ku-auto-component-completion*
@@ -379,6 +390,10 @@ m/			usr/share/man/		(*3)
 
 This feature is derived from bluewind, command-based application launcher for
 Microsoft Windows <http://cspace.s2.xrea.com/software/bluewind/>.
+
+See also:
+- |g:ku_acc_style|
+- |g:ku_component_separators|
 
 (*1) In the above example, '/' is a special character to activate this
 completion.  This character is configurable with |g:ku_component_separators|.
@@ -571,137 +586,184 @@ Sources have their own key table.  These key tables have higher priority than
 common key tables, but these have lower priority than custom key table for
 each source.  See also |ku-key-table|.
 
-					   *ku-source-api* *ku-source-scripts*
+						*ku-source-name*
+Sources must be named as one of the following formats:
+
+- {source}
+- {source}/{ext}
+
+Where {source} and {ext} should consist of lower cases only.
+For example:
+
+- "buffer", "history" and "metarw/git" are valid.
+- "BadOne", "hy-phen" and "too/o/many" are not valid.
+
+						*ku-source-scripts*
 Sources are written as autoload scripts called as "source scripts" which are
-placed in "autoload/ku/" directory in 'runtimepath'.  The names of sources are
-same as their file names without the ".vim" extension.  The names of sources
-should consist of lower cases only.  Sources must provide the following
-functions:
+placed in "autoload/ku/" directory in 'runtimepath'.  Source scripts must be
+named as "{source}.vim", where {source} is the name of a source.  For sources
+named as "{source}/{ext}", corresponding source scripts are named as
+"{source}.vim", not "{source}/{ext}.vim".
 
-ku#{source}#event_handler({event}, ...)		*ku#{source}#event_handler()*
-			Function which is called whenever an interesting event
-			is happened.  {event} is a string which represents
-			what event is occurred.
+						*ku-source-api*
+Sources must provide the following functions.  In the following descriptions,
 
-			"SourceEnter"		*ku-SourceEnter*
-				The current source is switched from another
-				source to {source}, or |the-ku-window| is open
-				and the current source is {source}.
+	{source}
+		means the name of a source.  For sources named as
+		"{source}/{ext}", "/{ext}" is not included.
 
-				Return value is ignored.
+	{ext}
+		means the tail of the name of a source namaed as
+		"{source}/{ext}".  For sources without {ext} in their names,
+		{ext} is an empty string.
 
-			"SourceLeave"		*ku-SourceLeave*
-				The current source is switched from {source}
-				to another source, or |the-ku-window| is
-				closed and the current source is {source}.
-
-				Return value is ignored.
-
-			"BeforeAction"		*ku-BeforeAction*
-				Just before an action is executed.
-
-				For this event, an extra argument is given to
-				an event handler.  It is a dictionary which
-				represents the item to be primarily passed to
-				the action.
-
-				An event handler must return a dictionary
-				which represents an item.  This item will be
-				passed to the action instead of the item given
-				to the event handler.  Note that if you want
-				to pass a modified item based on the given
-				item, you must not modify the given item
-				in-place.  Because items may be cached by
-				{source}.
-
-			If ku#{source}#event_handler() doesn't handle one or
-			more events, it must call ku#default_event_handler()
-			with the same arguments and it must return the return
-			value of that calling.  For example:
->
-				return call('ku#default_event_handler',
-				\           [a:event] + a:000)
-<
-ku#{source}#action_table()			*ku#{source}#action_table()*
-			Return the default action table for {souce}.
-			See also |ku-action-table|.
-
-ku#{source}#key_table()				*ku#{source}#key_table()*
-			Return the default key table for {souce}.
-			See also |ku-key-table|.
-
-ku#{source}#gather_items({pattern})		*ku#{source}#gather_items()*
-			Return a list of items which are matched to the given
-			{pattern}.  See |complete-items| for the detail of
-			items.
-
-			Sources may add additional entries for each item.
-			Keys of such entries must be prefixed with
-			"_{source}_", where {source} is the name of a source.
-			Also sources may add the following items:
-
-						*_ku_sort_priority*
-			_ku_sort_priority	(integer)
-				This value is used to sort items and it is
-				prior to user input.
-
-				The default value is 0 if this item is
-				omitted.
-
-			Also, ku adds additional entries for each item.  Keys
-			of such entries are prefixed with "_ku_".  The
-			following keys are officially provided:
-
-			_ku_completed_p		(boolean)
-				Normally true.  If the item is not completed
-				one, it is set to false.
-
-ku#{source}#acc_valid_p({item}, {sep})		*ku#{source}#acc_valid_p()*
+ku#{source}#acc_valid_p({ext}, {item}, {sep})	*ku#{source}#acc_valid_p()*
 			Return true if {item} can be used for ACC,
 			|ku-auto-component-completion|, or return false
 			otherwise.
 
 			{sep} is the separator inputted by user.
 
-			This function is optional; if it is not defined, all
-			{item}s can be used for ACC.
+			This function is optional; if it is not defined,
+			all {item}s can not be used for ACC.
 
+ku#{source}#action_table({ext})			*ku#{source}#action_table()*
+			Return the default action table for {souce}.
+			See also |ku-action-table|.
 
-						*ku-special-sources*
-Normally, 1 source script provides 1 source, and the basename of a source
-script is the same as the name of source which is provided by the source
-script.  For example, source script "autoload/ku/buffer.vim" provides only
-source "buffer".
+			This function is requried.
 
-But 1 source script may provide 2 or more sources dynamically.  Such source
-scripts are called as "special source scripts", and sources provides by them
-are called as "special sources".  Special source scripts are placed in
-"autoload/ku/special/" directory in 'runtimepath'.
+ku#{source}#available_sources()		     *ku#{source}#available_sources()*
+			Return a list of strings.  Each string represents the
+			name of a source which this source script provides.
 
-- The name of a special source must be in the following form:
-  "{source}-{ext}".
+			Normally, a source script provides just one source, so
+			that all you have to do is to define one like the
+			following:
+>
+				function! ku#{source}#available_sources()
+				  return ['{source}']
+				endfunction
+<
+			This function is requried.
 
-- {source} is the same as the basename of a special source script which
-  provides the special source.
+ku#{source}#gather_items({ext}, {pattern})	*ku#{source}#gather_items()*
+			Return a list of items which are matched to the given
+			{pattern}.  Each item is a dictionary.
+			See |complete-items| for the details.
 
-- {ext} is additional part.  It should consist of lower cases only.
+			Sources may add additional entries for each item.
+			Keys of such entries must be prefixed with
+			"ku_{source}_", where {source} is the name of
+			a source.  Also sources may add the following items:
 
-- For special sources, each |ku-source-api| takes 1 extra argument as the 1st
-  argument.  The value of the extra argument is a string which represents the
-  name of the current source.  For example, |ku#{source}#gather_items()| takes
-  {current-source} as the 1st argument and {pattern} as the 2nd argument.
+						*ku__sort_priority*
+			ku__sort_priority	(integer)
+				This value is used to sort items,
+				and it is prior to user input.
 
-- To provide information on available sources, special source scripts should
-  have additional scripts:
+				The default value is 0
+				if this item is omitted.
 
-  - The names of additional scripts are in the following form:
-    "autoload/ku/special/{source}_.vim".
+			Also, ku adds additional entries for each item.
+			Keys of such entries are prefixed with "ku__".
+			The following keys are officially provided:
 
-  - Additional scripts provides the following function:
+						*ku__completed_p*
+			ku__completed_p		(boolean)
+				Normally true.
+				If the item is not completed one,
+				it is set to false.
 
-ku#special#{source}_#sources()		      *ku#special#{source}_#sources()*
-			Return a list of strings.
-			Each string represents the name of a special source.
+						*ku__source*
+			ku__source		(string)
+				The name of the source
+				to which an item belongs.
+
+			There are the following rules on return values:
+			- During a |ku-session|, ku assumes that
+			  a return value is determined only by {pattern}.
+			  This means: >
+				let a = ku#{source}#gather_items("foo")
+				let b = ku#{source}#gather_items("foo")
+				echo a == b  "==> true
+<			- During a ku session, return values are cached by ku,
+			  so that sources don't have to do caching unless they
+			  want to do caching over ku sessions.
+			- ku may modify any item in return lists.  If so,
+			  ku adds/modifies entries named "ku__..." in items.
+			  But ku doesn't modify return lists themselves.
+			- See also |ku#{source}#special_char_p()|.
+
+			This function is requried.
+
+ku#{source}#key_table({ext})			*ku#{source}#key_table()*
+			Return the default key table for {souce}.
+			See also |ku-key-table|.
+
+			This function is requried.
+
+					      *ku#{source}#on_before_action()*
+ku#{source}#on_before_action({ext}, {item})
+			Event handler - this function is called:
+			- Before executing an action.
+
+			{item} is a dictionary which represents the item to be
+			primarily passed to the action.
+
+			Return value is dictionary which represents an item.
+			This item will be passed to the action instead of the
+			item given to the event handler.  Note that if you
+			want to pass a modified item based on the given item,
+			you must not modify the given item in-place.  Because
+			items may be cached by {source}.
+
+			This function is optional; if this function is not
+			defined, nothing will happen for the above event.
+
+					       *ku#{source}#on_source_enter()*
+ku#{source}#on_source_enter({ext})
+			Event handler - this function is called:
+			- Before switching the current source from another
+			  source to {source}.
+			- After opening |the-ku-window|, and the current
+			  source is {source}.
+
+			Return value is ignored.
+
+			This function is optional; if this function is not
+			defined, nothing will happen for the above events.
+
+					       *ku#{source}#on_source_leave()*
+ku#{source}#on_source_leave({ext})
+			Event handler - this function is called:
+			- Before switching the current source from {source} to
+			  another source.
+			- Before closing |the-ku-window| and the current
+			  source is {source}.
+
+			Return value is ignored.
+
+			This function is optional; if this function is not
+			defined, nothing will happen for the above events.
+
+ku#{source}#special_char_p({ext}, {character})	*ku#{source}#special_char_p()*
+			Return true if a given {character} is a special one,
+			otherwise return false.
+
+			Here "a special character" is defined as follows:
+			|ku#{source}#gather_items()| returns a different list
+			before whenever user types that character.
+
+			For example, return lists from |ku-file| are different
+			whenever user types "/" or "\".
+			So that ku#file#special_char_p() returns true for '/'
+			and '\', while returns false for other values.
+
+			This function is optional; if it is not defined,
+			it returns true if {character} is in
+			|g:ku_component_separators|
+			or it returns false otherwise.
 
 
 
@@ -726,6 +788,18 @@ FileType ku					*filetype-ku*
 		\ | execute 'inoremap <M-[>  <Esc>:<C-u>KuDoAction left<CR>'
 <
 
+g:ku_acc_style					*g:ku_acc_style*
+	A string which specifies the behavior
+	about |ku-auto-component-completion| (ACC).
+	This value is a comma-separated list of words.  The valid words and
+	their meanings are as follows:
+
+	rejection
+		Whenever ACC is failed,
+		the last inserted component separator is deleted.
+
+	The default value is "".
+
 g:ku_buffer_name				*g:ku_buffer_name*
 	A string which represents the name of the ku buffer.  This value
 	should be unique one which cannot be a name of a usual file to avoid
@@ -736,7 +810,7 @@ g:ku_buffer_name				*g:ku_buffer_name*
 	Windows.
 
 g:ku_choosing_actions_sorting_style	 *g:ku_choosing_actions_sorting_style*
-	A string which specify how to sort actions
+	A string which specifies how to sort actions
 	when |<Plug>(ku-choose-an-action)| shows available actions.
 	This variable can be one of the following values:
 
@@ -777,6 +851,25 @@ g:ku_history_added_p				*g:ku_history_added_p*
 	- Any patterns which were inputted for source |ku-source|, or
 	- Empty patterns.
 
+g:ku_history_reloading_style			*g:ku_history_reloading_style*
+	A string which specifies timings to reload and to save
+	|ku-input-history|.  This variable can be one of the following values:
+
+	"each"
+		- Whenever input history is required.
+		- The same timings as "once" and "idle".
+
+	"idle"
+		- Whenever Vim becomes idle or ku is activated after idle.
+		  See also |CursorHold|.
+		- The same timings as "once".
+
+	"once"
+		- Loading: After first activating ku for each Vim process.
+		- Saving: Before exiting Vim.
+
+	Default value is "once".
+
 g:ku_history_size				*g:ku_history_size*
 	A number which is the maximum size of input history.
 	Default value is 1000.
@@ -790,15 +883,20 @@ TERMS						*ku-terms*
 action						*ku-action*
 			An action is a function which is called by
 			|<Plug>(ku-do-the-default-action)|,
-			|<Plug>(ku-choose-an-action)|, or
-			|:KuDoAction|.
+			|<Plug>(ku-choose-an-action)|,
+			|:KuDoAction| and other commands.
 
 			Every action is registered in |ku-action-table| by
 			|ku#custom_action()|.  The above commands look into
 			the tables for available actions.
 
-			Every action should be named with only alphabets and
-			hyphens.
+			An action consists of the following elements:
+			- The "name" of the action.
+			  It should consist of only alphabets and hyphens.
+			- The name of the "function"
+			  which is called whenever the action is executed.
+			- The list of the names of "sources"
+			  to which the action can be applied.
 
 action table					*ku-action-table*
 			Action table is a dictionary, where each key is the
@@ -900,6 +998,60 @@ BUGS						*ku-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-changelog*
+
+0.2.0	2008-12-31T22:06:44+09:00/2009-04-28T01:45:50+09:00
+	- Add |ku__source|.
+	- Fix a few assumptions on path separator.
+	- Improve the performance to complete items.
+	  Now it is 10 times faster than old versions.
+	- Modify the sorting order of items.
+	  If an item contains any character of |g:ku_component_separators|,
+	  it is prior to other items which don't contain that characters.
+	  For example, if there are two items "foo/bar" and "foo-bar",
+	  new versions put "foo/bar" before "foo-bar",
+	  while old versions put "foo-bar" before "foo/bar".
+	  This change is to avoid selecting unexpected item with
+	  |ku-auto-component-completion|.
+	- |ku-auto-component-completion|:
+	  - Improve the conditions to activate.
+	    Now it is not unexpectedly activated for some cases.
+	  - Improve how many components to be completed.
+	- |g:ku_acc_style|: New.
+
+	Incompatible changes:
+	- Change many points about |ku-sources| and |ku-action|.
+	  - Sources for 0.1.x are not compatible with 0.2.x.
+	  - |ku#{source}#gather_items()|:
+	    - Change the naming rules about additional entries for each item:
+	      Old versions use "_{source}_..." and "_ku_...".
+	      New versions use "ku_{source}_..." and "ku__..." instead.
+	    - Add several rules on return values.
+	  - |ku#{source}#gather_items()|: New API to implement.
+	  - |ku#{source}#acc_valid_p()|:
+	    Change the default value if it is not defined.
+	    Old versions always return true.
+	    New versions always return false.
+	  - |ku-special-sources|: Delete this concept.  Now all source scripts
+	    may provide more than one sources.
+	  - |ku#{source}#available_sources()|: New function to implement.
+	  - |ku-source-api|: Most of functions must take an additional
+	    argument about source name.
+	  - |ku#{source}#event_handler()|: Delete.  This function is now split
+	    into the following functions:
+	    - |ku#{source}#on_before_action()|
+	    - |ku#{source}#on_source_enter()|
+	    - |ku#{source}#on_source_leave()|
+	- |ku-pattern|:
+	  - Change the definition of "word" pattern.
+	    Old versions use spaces and slashes as wildcards.
+	    New versions use only spaces as wildcards.
+	  - Add an assumption - see |ku-pattern-prefix-assumption|.
+
+0.1.9	2008-12-30T23:13:04+09:00/2008-12-31T06:52:02+09:00
+	- Add |g:ku_history_reloading_style|.
+	- Change the default timings to reload and to save |ku-input-history|.
+	  See also "idle" on |g:ku_history_reloading_style|.
+	  Old versions use "each", but "idle" is used instead from now on.
 
 0.1.8	2008-12-12T02:03:37+09:00/2008-12-24T17:33:31+09:00
 	- Add |g:ku_choosing_actions_sorting_style|.

@@ -1,7 +1,7 @@
 *ku-buffer.txt*	ku source: buffer
 
-Version 0.0.2
-Copyright (C) 2008 kana <http://whileimautomaton.net/>
+Version 0.1.0
+Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -43,7 +43,7 @@ from many buffers and do some action to it.
 
 Requirements:
 - Vim 7.1.299 or later
-- |ku| 0.1.0 or later (vimscript#2337)
+- |ku| 0.2.0 or later (vimscript#2337)
 
 Latest version:
 http://github.com/kana/config/commits/vim-ku-buffer
@@ -102,6 +102,10 @@ BUGS						*ku-buffer-bugs*
 
 ==============================================================================
 CHANGELOG					*ku-buffer-changelog*
+
+0.1.0	2009-01-10T14:54:03+09:00/2009-04-28T01:56:23+09:00
+	- Update for ku 0.2.0.
+	- Fix a bug in the sorting order.
 
 0.0.2	2008-12-24T14:04:21+09:00
 	- Fix the bug that a file or a directory which path contains a space
