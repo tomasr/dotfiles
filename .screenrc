@@ -14,6 +14,8 @@ vbell off
 # get rid of "splash screen"
 startup_message off
 termcapinfo * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
+# default to much saner utf-9
+defutf8 on
 
 # startup sessions
 screen -t sh 0
