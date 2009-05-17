@@ -140,7 +140,7 @@ noremap <C-E><C-C> :NERDTreeClose<CR>
 let html_number_lines = 0
 let html_ignore_folding = 1
 let html_use_css = 1
-let html_no_pre = 1
+"let html_no_pre = 0
 let use_xhtml = 1
 
 "
