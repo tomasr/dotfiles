@@ -39,10 +39,11 @@ set linebreak
 
 if has("win32") || has("win64")
    set guifont=Envy\ Code\ R:h13.5
-   set shell=powershell.exe
-   set shellcmdflag=-c
-   set shellpipe=>
-   set shellredir=>
+   "set shell=powershell.exe
+   "set shellcmdflag=-c
+   "set shellpipe=>
+   "set shellredir=>
+   let Tlist_Ctags_Cmd = 'e:\Tools\ctags.exe'
    set directory=$TMP
    if !has("gui_running")
       colorscheme slate
@@ -98,6 +99,10 @@ noremap k gk
 
 " disable warnings from NERDCommenter:
 let g:NERDShutUp = 1
+
+" Make sure taglist doesn't change the window size
+let g:Tlist_Inc_Winwidth = 0
+nnoremap <silent> <F8> :TlistToggle<CR>
 
 " language specific customizations:
 let g:python_highlight_numbers = 1
