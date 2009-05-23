@@ -25,12 +25,6 @@ write "Backup procedure starting at " `
 write (stars) "`r`n`r`n" >> $log
 
 #
-# stop CVS services 
-#
-net stop cvsnt >> $log
-net stop cvslock >> $log
-
-#
 # backup our set of folders
 #
 $objfiles = ('*.swp *.obj *.exe *.dll *.pdb *.pch *.idb *.ilk *.lib *.lck *.ncb *.plg *.tlb *.suo')
@@ -38,7 +32,7 @@ $folders = (
    ('e:\archive', ''), 
    ('e:\devdeo', ''),
    ('e:\git-data', ''),
-   ('e:\home', '*.swp'),
+   ('e:\home', '*.swp *.vdi'),
    ('e:\projects', $objfiles),
    ('e:\opensource', $objfiles),
    ('e:\tools', '')
@@ -54,12 +48,6 @@ $folders | %{
 # backup our VPC data file
 #
 robocopy 'f:\vpc_active\' $dest 'datos.vhd' /NP >> $log
-
-#
-# restart CVS services 
-#
-#net start cvsnt >> $log
-#net start cvslock >> $log
 
 #
 # write footer
