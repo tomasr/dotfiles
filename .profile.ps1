@@ -30,16 +30,16 @@ function script:append-path {
    }
 }
 
-& "$SCRIPTS\devenv.ps1"
-& "$SCRIPTS\javaenv.ps1"
 
-append-path $TOOLS
+append-path "$TOOLS"
 append-path (resolve-path "$TOOLS\svn-*\bin")
 append-path (resolve-path "$TOOLS\nant-*")
 append-path "$TOOLS\vim"
 append-path "$TOOLS\gnu"
 append-path "$TOOLS\git\bin"
 
+& "$SCRIPTS\devenv.ps1"
+& "$SCRIPTS\javaenv.ps1"
 
 #
 # Define our prompt. Show '~' instead of $HOME
