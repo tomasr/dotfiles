@@ -159,6 +159,11 @@ function escape-html($text) {
    $text.Replace('>', '&gt;')
 }
 
+# ugly, ugly, ugly
+function to-binle([long]$val) {
+   [Convert]::ToString($val, 2)
+}
+
 # load session helpers
 ."$SCRIPTS\sessions.ps1"
 
