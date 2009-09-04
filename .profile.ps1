@@ -190,7 +190,7 @@ function format-bytes($bytes, $bytesPerLine = 8) {
 function convertfrom-b64([string] $str) {
    [convert]::FromBase64String($str)
 }
-function normalize-array($array, [int]$offset, [int]$len) {
+function normalize-array($array, [int]$offset, [int]$len=$array.Length-$offset) {
    $dest = new-object $array.GetType() $len
    [array]::Copy($array, $offset, $dest, 0, $len)
    $dest
