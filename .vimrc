@@ -49,10 +49,13 @@ if has("win32") || has("win64")
    if !has("gui_running")
       colorscheme slate
    end
+elseif has("mac")
+   set directory=/tmp
+   set guifont=Envy\ Code\ R:h16
 else
    set directory=/tmp
    set guifont=Envy\ Code\ R\ 16
-end
+endif
 
 " Map Ctrl-E Ctrl-W to toggle linewrap option like in VS
 noremap <C-E><C-W> :set wrap!<CR>
