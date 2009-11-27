@@ -32,7 +32,7 @@ function script:append-path {
 
 
 append-path "$TOOLS"
-append-path (resolve-path "$TOOLS\svn-*\bin")
+append-path (resolve-path "$TOOLS\svn-*")
 append-path (resolve-path "$TOOLS\nant-*")
 append-path "$TOOLS\vim"
 append-path "$TOOLS\gnu"
