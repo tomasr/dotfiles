@@ -4,20 +4,21 @@
 # and ln.exe from
 # http://www.flexhex.com/docs/articles/hard-links.phtml
 
-ls ~\dotfiles | %{
+$h = $env:HOME;
+ls "$h\dotfiles" | %{
    if ( $_.Name -ne '.git' ) {
-      if ( test-path "~\$($_.Name)" ) {
+      if ( test-path "$h\$($_.Name)" ) {
          if ( $_.PSIsContainer ) {
             # try to unlink first
-            linkd.exe "$HOME\$($_.Name)" /d
+            linkd.exe "$h\$($_.Name)" /d
          } else {
-            rm -r -force "~\$($_.Name)"
+            rm -r -force "$h\$($_.Name)"
          }
       }
       if ( $_.PSIsContainer ) {
-         linkd.exe "$HOME\$($_.Name)" $_.FullName
+         linkd.exe "$h\$($_.Name)" $_.FullName
       } else {
-         fsutil hardlink create "$HOME\$($_.Name)" $_.FullName
+         fsutil hardlink create "$h\$($_.Name)" $_.FullName
       }
    }
 }
