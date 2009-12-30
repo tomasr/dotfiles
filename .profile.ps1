@@ -53,10 +53,20 @@ function shorten-path([string] $path) {
    return ($loc -replace '\\(\.?)([^\\])[^\\]*(?=\\)','\$1$2')
 }
 
+function get-adminuser() {
+   $id = [Security.Principal.WindowsIdentity]::GetCurrent()
+   $p = New-Object Security.Principal.WindowsPrincipal($id)
+   return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
 function prompt {
    # our theme
    $cdelim = [ConsoleColor]::DarkCyan
-   $chost = [ConsoleColor]::Green
+   if ( get-adminuser ) {
+      $chost = [ConsoleColor]::Gray
+   } else {
+      $chost = [ConsoleColor]::Green
+   }
    $cpref = [ConsoleColor]::Cyan
    $cloc = [ConsoleColor]::Magenta
 
