@@ -91,7 +91,7 @@ syn match ps1Number /\<[0-9]\*\.[0-9]\+/
 " constants
 syn match ps1Boolean "$\%(true\|false\)\>"
 syn match ps1Constant /\$null\>/
-syn match ps1BuiltIn "$\%(_\|?\|^\|$\)\>"
+syn match ps1BuiltIn "$^\|$?\|$_\|$\$"
 syn match ps1BuiltIn "$\%(args\|error\|foreach\|home\|input\)\>"
 syn match ps1BuiltIn "$\%(match\(es\)\?\|myinvocation\|host\|lastexitcode\)\>"
 syn match ps1BuiltIn "$\%(ofs\|shellid\|stacktrace\)\>"
