@@ -19,6 +19,9 @@ set-variable -name HOME -value (resolve-path $env:Home) -force
 $TOOLS = 'e:\tools'
 $SCRIPTS = "$HOME\scripts"
 $env:EDITOR = 'gvim.exe'
+# so git looks nice
+$env:TERM = 'cygwin'
+$env:LESS = 'FRSX'
 
 #
 # set path to include my usual directories
