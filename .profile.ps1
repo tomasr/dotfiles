@@ -19,9 +19,6 @@ set-variable -name HOME -value (resolve-path $env:Home) -force
 $TOOLS = 'e:\tools'
 $SCRIPTS = "$HOME\scripts"
 $env:EDITOR = 'gvim.exe'
-# so git looks nice
-$env:TERM = 'cygwin'
-$env:LESS = 'FRSX'
 
 #
 # set path to include my usual directories
@@ -207,6 +204,18 @@ function normalize-array($array, [int]$offset, [int]$len=$array.Length-$offset) 
    $dest = new-object $array.GetType() $len
    [array]::Copy($array, $offset, $dest, 0, $len)
    $dest
+}
+
+# VHD helper functions for Win7
+function add-vhd($vhdfile) {
+   $path = resolve-path $vhdfile
+   $script = "SELECT VDISK FILE=`"$path`"`r`nATTACH VDISK"
+   $script | diskpart
+}
+function remove-vhd($vhdfile) {
+   $path = resolve-path $vhdfile
+   $script = "SELECT VDISK FILE=`"$path`"`r`nDETACH VDISK"
+   $script | diskpart
 }
 
 # load session helpers
