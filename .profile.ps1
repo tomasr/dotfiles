@@ -63,7 +63,7 @@ function prompt {
    # our theme
    $cdelim = [ConsoleColor]::DarkCyan
    if ( get-adminuser ) {
-      $chost = [ConsoleColor]::Gray
+      $chost = [ConsoleColor]::Red
    } else {
       $chost = [ConsoleColor]::Green
    }
