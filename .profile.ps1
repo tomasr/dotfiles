@@ -71,7 +71,7 @@ function prompt {
    $cloc = [ConsoleColor]::Magenta
 
    write-host "$([char]0x0A7) " -n -f $cpref
-   write-host ([net.dns]::GetHostName()) -n -f $chost
+   write-host ([net.dns]::GetHostName().ToLower()) -n -f $chost
    write-host ' {' -n -f $cdelim
    write-host (shorten-path (pwd).Path) -n -f $cloc
    write-host '}' -n -f $cdelim
