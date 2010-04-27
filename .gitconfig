@@ -1,3 +1,5 @@
 [user]
-	name = Tomas Restrepo
-	email = tomas@winterdom.com
+   name = Tomas Restrepo
+   email = tomas@winterdom.com
+[core]
+   autocrlf=false
