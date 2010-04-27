@@ -24,8 +24,8 @@ else
 endif
 
 set modeline
-set tabstop=3 " tab size = 3
-set shiftwidth=3 " soft space = 3
+set tabstop=2 " tab size = 2
+set shiftwidth=2 " soft space = 2
 set smarttab
 set expandtab " expand tabs
 set wildchar=9 " tab as completion character
