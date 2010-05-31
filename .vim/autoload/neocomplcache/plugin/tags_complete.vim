@@ -1,8 +1,7 @@
 "=============================================================================
 " FILE: tags_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 14 Dec 2009
-" Usage: Just source this file.
+" Last Modified: 15 Apr 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,75 +22,6 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 1.15, for Vim 7.0
-"-----------------------------------------------------------------------------
-" ChangeLog: "{{{
-"   1.15:
-"    - Use g:NeoComplCache_TagsFilterPatterns.
-"
-"   1.14:
-"    - Use cache helper.
-"    - Supported neocomplcache ver.4.00.
-"    - Fixed tags_complete caching error.
-"
-"   1.13:
-"    - Save error log.
-"    - Implemented member filter.
-"    - Allow dup.
-"
-"   1.12:
-"    - Implemented fast search.
-"    - Print filename when caching.
-"
-"   1.11:
-"    - Disable auto caching in tags_complete.
-"    - Improved caching.
-"
-"   1.10:
-"    - Enable auto-complete.
-"    - Optimized.
-"
-"   1.09:
-"    - Supported neocomplcache 3.0.
-"
-"   1.08:
-"    - Improved popup menu.
-"    - Ignore case.
-"
-"   1.07:
-"    - Fixed for neocomplcache 2.43.
-"
-"   1.06:
-"    - Improved abbr.
-"    - Refactoring.
-"
-"   1.05:
-"    - Improved filtering.
-"
-"   1.04:
-"    - Don't return static member.
-"
-"   1.03:
-"    - Optimized memory.
-"
-"   1.02:
-"    - Escape input keyword.
-"    - Supported camel case completion.
-"    - Fixed echo.
-"
-"   1.01:
-"    - Not caching.
-"
-"   1.00:
-"    - Initial version.
-" }}}
-"-----------------------------------------------------------------------------
-" TODO: "{{{
-"     - Nothing.
-""}}}
-" Bugs"{{{
-"     - Nothing.
-""}}}
 "=============================================================================
 
 function! neocomplcache#plugin#tags_complete#initialize()"{{{
@@ -138,7 +68,9 @@ function! neocomplcache#plugin#tags_complete#get_keyword_list(cur_keyword_str)"{
     let l:keyword_list = []
     let l:key = tolower(l:cur_keyword_str[: s:completion_length-1])
     if len(l:cur_keyword_str) < s:completion_length || neocomplcache#check_match_filter(l:key)
-        let l:keyword_list += neocomplcache#unpack_dictionary_dictionary(l:tags_list)
+        for tags in values(l:tags_list)
+            let l:keyword_list += neocomplcache#unpack_dictionary(tags)
+        endfor
     else
         for tags in values(l:tags_list)
             if has_key(tags, l:key)
@@ -146,7 +78,7 @@ function! neocomplcache#plugin#tags_complete#get_keyword_list(cur_keyword_str)"{
             endif
         endfor
         
-        if len(l:cur_keyword_str) == s:completion_length && !l:use_member_filter
+        if len(l:cur_keyword_str) == s:completion_length && !l:use_member_filter && &ignorecase
             return l:keyword_list
         endif
     endif

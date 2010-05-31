@@ -1,8 +1,7 @@
 "=============================================================================
 " FILE: neocomplcache.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 14 Dec 2009
-" Usage: Just source this file.
+" Last Modified: 15 Apr 2010
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -23,7 +22,7 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
-" Version: 4.02, for Vim 7.0
+" Version: 4.30, for Vim 7.0
 "=============================================================================
 
 if v:version < 700
@@ -59,7 +58,7 @@ if !exists('g:NeoComplCache_MinKeywordLength')
     let g:NeoComplCache_MinKeywordLength = 4
 endif
 if !exists('g:NeoComplCache_IgnoreCase')
-    let g:NeoComplCache_IgnoreCase = 1
+    let g:NeoComplCache_IgnoreCase = &ignorecase
 endif
 if !exists('g:NeoComplCache_SmartCase')
     let g:NeoComplCache_SmartCase = 0
@@ -82,12 +81,6 @@ endif
 if !exists('g:NeoComplCache_EnableRandomize')
     let g:NeoComplCache_EnableRandomize = has('reltime')
 endif
-if !exists('g:NeoComplCache_EnableSkipCompletion')
-    let g:NeoComplCache_EnableSkipCompletion = has('reltime')
-endif
-if !exists('g:NeoComplCache_SkipCompletionTime')
-    let g:NeoComplCache_SkipCompletionTime = '0.2'
-endif
 if !exists('g:NeoComplCache_EnableCamelCaseCompletion')
     let g:NeoComplCache_EnableCamelCaseCompletion = 0
 endif
@@ -96,6 +89,15 @@ if !exists('g:NeoComplCache_EnableUnderbarCompletion')
 endif
 if !exists('g:NeoComplCache_EnableDispalyParameter')
     let g:NeoComplCache_EnableDispalyParameter = 1
+endif
+if !exists('g:NeoComplCache_EnableCursorHoldI')
+    let g:NeoComplCache_EnableCursorHoldI = 0
+endif
+if !exists('g:NeoComplCache_CursorHoldITime')
+    let g:NeoComplCache_CursorHoldITime = 300
+endif
+if !exists('g:NeoComplCache_EnableAutoSelect')
+    let g:NeoComplCache_EnableAutoSelect = 0
 endif
 if !exists('g:NeoComplCache_CachingLimitFileSize')
     let g:NeoComplCache_CachingLimitFileSize = 1000000
@@ -111,6 +113,9 @@ if !exists('g:NeoComplCache_DisablePluginList')
 endif
 if !exists('g:NeoComplCache_TemporaryDir')
     let g:NeoComplCache_TemporaryDir = '~/.neocon'
+endif
+if !exists('g:NeoComplCache_CtagsProgram')
+    let g:NeoComplCache_CtagsProgram = 'ctags'
 endif
 let g:NeoComplCache_TemporaryDir = expand(g:NeoComplCache_TemporaryDir)
 if !isdirectory(g:NeoComplCache_TemporaryDir)
