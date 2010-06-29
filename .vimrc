@@ -171,16 +171,6 @@ map <Leader>ss :setlocal spell spelllang=es_es<CR>
 map <Leader>sn :setlocal nospell<CR>
 
 "
-" Configure Neocomplcache
-"
-let g:NeoComplCache_EnableAtStartup = 1
-let g:NeoComplCache_SmartCase = 1
-let g:NeoComplCache_EnableCamelCaseCompletion = 1
-let g:NeoComplCache_EnableUnderbarCompletion = 1
-let g:NeoComplCache_MinSyntaxLength = 3
-
-
-"
 " Other stuff
 "
 runtime 'macros/matchit.vim'
