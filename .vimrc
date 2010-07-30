@@ -7,7 +7,7 @@ source $VIMRUNTIME/mswin.vim
 "
 set bg=dark
 let g:zenburn_high_Contrast = 1
-let g:molokai_original = 0
+let g:molokai_original = 1
 set t_Co=256
 colorscheme molokai
 
@@ -178,7 +178,7 @@ runtime 'macros/matchit.vim'
 " 
 " Configure tabs for the console version
 "
-function MyTabLine()
+function! MyTabLine()
   let s = ''
   for i in range(tabpagenr('$'))
     " select the highlighting
@@ -206,7 +206,7 @@ function MyTabLine()
   return s
 endfunction
 
-function MyTabLabel(n)
+function! MyTabLabel(n)
   let buflist = tabpagebuflist(a:n)
   let winnr = tabpagewinnr(a:n)
   return bufname(buflist[winnr - 1])
@@ -231,7 +231,7 @@ if has('statusline')
    " %=		right-align following items
    " #%n		buffer number
    " %l/%L,%c%V	line number, total number of lines, and column number
-   function SetStatusLineStyle()
+   function! SetStatusLineStyle()
       if &stl == '' || &stl =~ 'synID'
          let &stl="%f %y%([%R%M]%)%{'!'[&ff=='".&ff."']}%{'$'[!&list]}%{'~'[&pm=='']}%=#%n %l/%L,%c%V "
       else
