@@ -39,7 +39,7 @@ set wrap
 set linebreak
 
 if has("win32") || has("win64")
-   set guifont=Envy\ Code\ R:h13.5
+   set guifont=Envy\ Code\ R:h12.5
    "set shell=powershell.exe
    "set shellcmdflag=-c
    "set shellpipe=>
