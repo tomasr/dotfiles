@@ -7,6 +7,8 @@ defbce "on"
 defscrollback 5000
 # Fix scrolling in some terminals
 termcapinfo xterm* ti@:te@
+# fix 256-color problem when connecting from Putty:
+#termcapinfo putty* XT
 # add bottom line with list of windows
 hardstatus alwayslastline '%{= B} %H %= %{= k}%-w%{+b G}%n*%t%{-b G}%{k}%+w %= %{c}%d %D %{M}%c '
 # get rid of annoying flicker on tab completion
@@ -14,8 +16,9 @@ vbell off
 # get rid of "splash screen"
 startup_message off
 termcapinfo * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
-# default to much saner utf-9
-defutf8 on
+
+# set the titlebar in xterm sessions
+termcapinfo xterm 'hs:ts=\E]2;:fs=\007:ds=\E]2;screen\007'
 
 # startup sessions
 screen -t sh 0
