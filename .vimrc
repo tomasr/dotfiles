@@ -51,10 +51,10 @@ if has("win32") || has("win64")
    end
 elseif has("mac")
    set directory=/tmp
-   set guifont=Envy\ Code\ R:h16
+   set guifont=Envy\ Code\ R:h14
 else
    set directory=/tmp
-   set guifont=Envy\ Code\ R\ 16
+   set guifont=Envy\ Code\ R\ 14
 endif
 
 " Map Ctrl-E Ctrl-W to toggle linewrap option like in VS
