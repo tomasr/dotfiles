@@ -1,6 +1,7 @@
 " Vim plugin for showing marks using number array.
 " Maintainer: Hongli Gao <left.slipper at gmail dot com>
-" Last Change: 2008 April 12
+" Last Change: 2010 August 27 
+" Version: 1.4
 "
 " USAGE:
 " Copy this file to your vim's plugin folder.
@@ -22,15 +23,18 @@
 "
 " delete all marks:
 "                            F4
-" If you want to save the marks to a file. Do it like below:
-" Put the one line
+"
+" If you want to save the marks to a file. Do it like this:
+" Add
+"
 " let g:Signs_file_path_corey='c:\\'
-" into your gvimrc, change it to your path.
+" 
+" to your gvimrc, change it to your path.
 "
-" :call Save_signs_to_file()   # Save marks.
-" :call Load_signs_from_file() # Do this, after opening all your marked files
+" press F6, input a name on command line, press ENTER.   # Save marks.
+" press F5, input a name that you used, press ENTER.     # Reload marks.
 "
-" copyright (c) 2008 Hongli Gao; 
+" copyright (c) 2010 Hongli Gao; 
 " Distributed under the GNU General Public License.
 " ---------------------------------------------------------------------
 
@@ -46,13 +50,41 @@ else
 endif
 
 "[ sign id, line number, file name]
-let s:mylist = [["00","0","DO NOT CHANGE ANYTHING ABOUT THE FILE, THIS USE FOR VIM PLUGIN. BY HONGLI GAO @2008/03"]]
+let s:mylist = [["00","0","DO NOT CHANGE ANYTHING, THIS USING FOR A VIM PLUGIN. BY HONGLI GAO @2010/08"]]
 let s:myIndex = 1
 let s:tmplist = ["00","0","corey"]
 let s:deleteFlag = 0
 let s:outputFileName = "DO_NOT_DELETE_IT"
 let s:remarkItem = ["REMARK","SEARCH","FLAG"]
 
+" ---------------------------------------------------------------------
+fun! SaveP()
+  call inputsave()
+  let Pname = input('Save Marks to: ')
+  call inputrestore()
+  if len(Pname) > 0
+      if exists("g:Signs_file_path_corey")
+        let temp = g:Signs_file_path_corey
+        let g:Signs_file_path_corey = g:Signs_file_path_corey . Pname
+        call Save_signs_to_file()
+        let g:Signs_file_path_corey = temp
+      endif
+  endif
+endfun
+
+fun! ReloadP()
+  call inputsave()
+  let Pbname = input('Load Marks from: ')
+  call inputrestore()
+  if len(Pbname) > 0
+      if exists("g:Signs_file_path_corey")
+        let temp = g:Signs_file_path_corey
+        let g:Signs_file_path_corey = g:Signs_file_path_corey . Pbname
+        call Load_signs_from_file()
+        let g:Signs_file_path_corey = temp
+      endif
+  endif
+endfun
 " ---------------------------------------------------------------------
 " put on one sign
 fun! Place_sign()
@@ -141,8 +173,9 @@ fun! Save_signs_to_file()
   for item in s:mylist
     let tempList = tempList + [item[0] . "#" . item[1]. "#" . item[2]]
   endfor
-  let writeFlag = writefile(tempList, s:outputFileName)
-
+  if exists("g:Signs_file_path_corey")
+      let writeFlag = writefile(tempList, s:outputFileName)
+  endif
 endfun
 " ---------------------------------------------------------------------
 " Load_signs_from_file
@@ -201,9 +234,11 @@ endfun
 fun! s:Flash_signs()
 
   silent! exe 'sign unplace *'
+  silent! exe 'sign undefine *'
   if len(s:mylist) > 1
     for item in s:mylist
       silent! exe 'sign define CS' . item[0] . ' text='. item[0] .' texthl=ErrorMsg'
+      silent! exe 'badd ' . item[2]
       silent! exe 'sign place ' . item[0] . ' line=' . item[1] . ' name=CS'. item[0] . ' file=' . item[2]
     endfor
   endif
@@ -368,6 +403,7 @@ fun! s:Seach_file(aFileName, aBufferList)
   return vResult
 endfun
 
+
 " ---------------------------------------------------------------------
 if !hasmapto('<Plug>Place_sign')
   map <unique> <c-F2> <Plug>Place_sign
@@ -396,6 +432,10 @@ if !hasmapto('<Plug>Move_sign')
   map <silent> <unique> m. <Plug>Move_sign
 endif
 nnoremap <silent> <script> <Plug>Move_sign :call Move_sign()<cr>
+
+
+noremap <F6> :call SaveP()<cr>
+noremap <F5> :call ReloadP()<cr>
 
 " ---------------------------------------------------------------------
 
