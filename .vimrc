@@ -101,6 +101,11 @@ end
 noremap j gj
 noremap k gk
 
+" Use pathogen.vim to manage and load plugins
+call pathogen#help_tags();
+call pathogen#runtime_append_all_bundles();
+
+
 " disable warnings from NERDCommenter:
 let g:NERDShutUp = 1
 
