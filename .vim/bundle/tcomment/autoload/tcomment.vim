@@ -1,10 +1,10 @@
 " tcomment.vim
-" @Author:      Thomas Link (mailto:micathom AT gmail com?subject=[vim])
+" @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @Website:     http://www.vim.org/account/profile.php?user_id=4037
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Created:     2007-09-17.
-" @Last Change: 2007-12-27.
-" @Revision:    0.0.33
+" @Last Change: 2009-02-15.
+" @Revision:    0.0.66
 
 if &cp || exists("loaded_tcomment_autoload")
     finish
@@ -28,8 +28,11 @@ let s:nullCommentString    = '%s'
 " commentMode:
 "   G ... guess
 "   B ... block
+"   i ... maybe inline, guess
 "   I ... inline
 "   R ... right
+"   v ... visual
+"   o ... operator
 function! tcomment#Comment(beg, end, ...)
     " save the cursor position
     let co = col('.')
@@ -37,6 +40,7 @@ function! tcomment#Comment(beg, end, ...)
     let s:pos_end = getpos("'>")
     let commentMode   = a:0 >= 1 ? a:1 : 'G'
     let commentAnyway = a:0 >= 2 ? (a:2 == '!') : 0
+    " TLogVAR a:beg, a:end, a:1, commentMode, commentAnyway
     if commentMode =~# 'i'
         let commentMode = substitute(commentMode, '\Ci', line("'<") == line("'>") ? 'I' : 'G', 'g')
     endif
@@ -50,6 +54,9 @@ function! tcomment#Comment(beg, end, ...)
             let cend = 0
         else
             let cend = col("'>")
+            if commentMode =~# 'o'
+                let cend += 1
+            endif
         endif
     else
         let cstart = 0
@@ -83,6 +90,7 @@ function! tcomment#Comment(beg, end, ...)
         " We want a comment block
         call s:CommentBlock(a:beg, a:end, uncomment, cmtCheck, cms, indentStr)
     else
+        " call s:CommentLines(a:beg, a:end, cstart, cend, uncomment, cmtCheck, cms0, indentStr)
         " We want commented lines
         " final search pattern for uncommenting
         let cmtCheck   = escape('\V\^\(\s\{-}\)'. cmtCheck .'\$', '"/\')
@@ -102,10 +110,12 @@ function! tcomment#Comment(beg, end, ...)
     endif
 endf
 
-
 function! tcomment#Operator(type, ...) "{{{3
     let commentMode = a:0 >= 1 ? a:1 : ''
     let bang = a:0 >= 2 ? a:2 : ''
+    if !exists('w:tcommentPos')
+        let w:tcommentPos = getpos(".")
+    endif
     let sel_save = &selection
     let &selection = "inclusive"
     let reg_save = @@
@@ -129,7 +139,7 @@ function! tcomment#Operator(type, ...) "{{{3
         let end = line("']")
         norm! 
         let commentMode .= g:tcommentOpModeExtra
-        call tcomment#Comment(beg, end, commentMode, bang)
+        call tcomment#Comment(beg, end, commentMode.'o', bang)
     finally
         let &selection = sel_save
         let @@ = reg_save
@@ -372,10 +382,20 @@ function! s:ProcessedLine(uncomment, match, checkRx, replace)
     let s:pos_end = getpos('.')
     let s:pos_end[2] += len(rv)
     " TLogVAR pe, md, a:match
-    let rv = escape(rv, '\
-')
+    let rv = escape(rv, '\')
     let rv = substitute(rv, '\n', '\\\n', 'g')
     return rv
+endf
+
+function! s:CommentLines(beg, end, cstart, cend, uncomment, cmtCheck, cms0, indentStr) "{{{3
+    " We want commented lines
+    " final search pattern for uncommenting
+    let cmtCheck   = escape('\V\^\(\s\{-}\)'. a:cmtCheck .'\$', '"/\')
+    " final pattern for commenting
+    let cmtReplace = escape(a:cms0, '"/')
+    silent exec a:beg .','. a:end .'s/\V'. 
+                \ s:StartRx(a:cstart) . a:indentStr .'\zs\(\.\{-}\)'. s:EndRx(a:cend) .'/'.
+                \ '\=s:ProcessedLine('. a:uncomment .', submatch(0), "'. a:cmtCheck .'", "'. cmtReplace .'")/ge'
 endf
 
 function! s:CommentBlock(beg, end, uncomment, checkRx, replace, indentStr)
@@ -422,28 +442,33 @@ function! s:GuessFileType(beg, end, commentMode, filetype, ...)
         let cms = s:GuessCurrentCommentString(0)
     endif
     let n  = a:beg
+    " TLogVAR n, a:beg, a:end
     while n <= a:end
         let m  = indent(n) + 1
-        let le = col('$')
+        let le = len(getline(n))
+        " TLogVAR m, le
         while m < le
             let syntaxName = synIDattr(synID(n, m, 1), 'name')
+            " TLogVAR syntaxName, n, m
             let ftypeMap   = get(g:tcommentSyntaxMap, syntaxName)
             if !empty(ftypeMap)
+                " TLogVAR ftypeMap
                 return s:GetCustomCommentString(ftypeMap, a:commentMode, cms)
             elseif syntaxName =~ g:tcommentFileTypesRx
                 let ft = substitute(syntaxName, g:tcommentFileTypesRx, '\1', '')
+                " TLogVAR ft
                 if exists('g:tcommentIgnoreTypes_'. a:filetype) && g:tcommentIgnoreTypes_{a:filetype} =~ '\<'.ft.'\>'
-                    let m = m + 1
+                    let m += 1
                 else
                     return s:GetCustomCommentString(ft, a:commentMode, cms)
                 endif
             elseif syntaxName == '' || syntaxName == 'None' || syntaxName =~ '^\u\+$' || syntaxName =~ '^\u\U*$'
-                let m = m + 1
+                let m += 1
             else
                 break
             endif
         endwh
-        let n = n + 1
+        let n += 1
     endwh
     return [cms, commentMode]
 endf
