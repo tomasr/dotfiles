@@ -40,10 +40,6 @@ set linebreak
 
 if has("win32") || has("win64")
    set guifont=Envy\ Code\ R:h12.5
-   "set shell=powershell.exe
-   "set shellcmdflag=-c
-   "set shellpipe=>
-   "set shellredir=>
    let Tlist_Ctags_Cmd = 'e:\Tools\ctags.exe'
    set directory=$TMP
    if !has("gui_running")
@@ -56,13 +52,6 @@ else
    set directory=/tmp
    set guifont=Envy\ Code\ R\ 14
 endif
-
-" Map Ctrl-E Ctrl-W to toggle linewrap option like in VS
-noremap <C-E><C-W> :set wrap!<CR>
-" Map Ctrl-M Ctrl-L to expand all folds like in VS
-noremap <C-M><C-L> :%foldopen!<CR>
-" Remap omni-complete to avoid having to type so fast
-inoremap <C-Space> <C-X><C-O>
 
 set history=50 " keep track of last commands
 set number ruler " show line numbers
@@ -77,6 +66,9 @@ set wildmenu " menu on statusbar for command autocomplete
 " default to UTF-8 encoding
 set encoding=utf8
 set fileencoding=utf8
+" enable visible whitespace
+set listchars=tab:»·,trail:·,precedes:<,extends:>
+set list
 
 " no beep
 autocmd VimEnter * set vb t_vb= 
@@ -96,6 +88,13 @@ if !has("gui_running")
    nmap <Leader>tp :tabprevious<cr>
    nmap <Leader><F4> :tabclose<cr>
 end
+
+" Map Ctrl-E Ctrl-W to toggle linewrap option like in VS
+noremap <C-E><C-W> :set wrap!<CR>
+" Map Ctrl-M Ctrl-L to expand all folds like in VS
+noremap <C-M><C-L> :%foldopen!<CR>
+" Remap omni-complete to avoid having to type so fast
+inoremap <C-Space> <C-X><C-O>
 
 " Windows like movements for long lines with wrap enabled:
 noremap j gj
@@ -133,10 +132,6 @@ au BufNewFile,BufRead *.mg setf mg
 syntax on " syntax hilight on
 syntax sync fromstart 
 filetype plugin indent on
-
-" enable visible whitespace
-set listchars=tab:»·,trail:·,precedes:<,extends:>
-set list
 
 runtime xmlpretty.vim
 command! -range=% Xmlpretty :call XmlPretty(<line1>, <line2>)
