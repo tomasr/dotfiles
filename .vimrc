@@ -174,6 +174,7 @@ map <Leader>sn :setlocal nospell<CR>
 " Other stuff
 "
 runtime 'macros/matchit.vim'
+nmap <leader>R :RainbowParenthesesToggle<CR>
 
 " 
 " Configure tabs for the console version
