@@ -175,6 +175,11 @@ map <Leader>sn :setlocal nospell<CR>
 "
 runtime 'macros/matchit.vim'
 nmap <leader>R :RainbowParenthesesToggle<CR>
+" these are supposed to be done on syntax files, but
+" they fit pretty much everything I work on.
+au BufNewFile,BufRead *.* call rainbow_parentheses#LoadRound()
+au BufNewFile,BufRead *.* call rainbow_parentheses#LoadSquare()
+au BufNewFile,BufRead *.* call rainbow_parentheses#LoadBraces()
 
 " 
 " Configure tabs for the console version
