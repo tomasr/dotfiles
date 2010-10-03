@@ -2,25 +2,24 @@
 " @Author:      Tom Link (micathom AT gmail com)
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Created:     27-Dez-2004.
-" @Last Change: 2009-08-07.
-" @Revision:    1.9.671
+" @Last Change: 2010-10-02.
+" @Revision:    709
 " 
 " GetLatestVimScripts: 1173 1 tComment.vim
 
 if &cp || exists('loaded_tcomment')
     finish
 endif
-let loaded_tcomment = 109
-
-" If true, comment blank lines too
-if !exists("g:tcommentBlankLines")
-    let g:tcommentBlankLines = 1
-endif
+let loaded_tcomment = 201
 
 if !exists("g:tcommentMapLeader1")
+    " g:tcommentMapLeader1 should be a shortcut that can be used with 
+    " map, imap, vmap.
     let g:tcommentMapLeader1 = '<c-_>'
 endif
 if !exists("g:tcommentMapLeader2")
+    " g:tcommentMapLeader2 should be a shortcut that can be used with 
+    " map, xmap.
     let g:tcommentMapLeader2 = '<Leader>_'
 endif
 if !exists("g:tcommentMapLeaderOp1")
@@ -33,223 +32,77 @@ if !exists("g:tcommentOpModeExtra")
     let g:tcommentOpModeExtra = ''
 endif
 
-" Guess the file type based on syntax names always or for some fileformat only
-if !exists("g:tcommentGuessFileType")
-    let g:tcommentGuessFileType = 0
-endif
-" In php documents, the php part is usually marked as phpRegion. We thus 
-" assume that the buffers default comment style isn't php but html
-if !exists("g:tcommentGuessFileType_dsl")
-    let g:tcommentGuessFileType_dsl = 'xml'
-endif
-if !exists("g:tcommentGuessFileType_php")
-    let g:tcommentGuessFileType_php = 'html'
-endif
-if !exists("g:tcommentGuessFileType_html")
-    let g:tcommentGuessFileType_html = 1
-endif
-if !exists("g:tcommentGuessFileType_tskeleton")
-    let g:tcommentGuessFileType_tskeleton = 1
-endif
-if !exists("g:tcommentGuessFileType_vim")
-    let g:tcommentGuessFileType_vim = 1
-endif
 
-if !exists("g:tcommentIgnoreTypes_php")
-    let g:tcommentIgnoreTypes_php = 'sql'
-endif
+" :display: :[range]TComment[!] ?ARGS...
+" If there is a visual selection that begins and ends in the same line, 
+" then |:TCommentInline| is used instead.
+" The optional range defaults to the current line. With a bang '!', 
+" always comment the line.
+"
+" ARGS... are either (see also |tcomment#Comment()|):
+"   1. a list of key=value pairs
+"   2. 1-2 values for: ?commentBegin, ?commentEnd
+command! -bang -range -nargs=* -complete=customlist,tcomment#CompleteArgs TComment
+            \ keepjumps call tcomment#Comment(<line1>, <line2>, 'G', "<bang>", <f-args>)
 
-if !exists('g:tcommentSyntaxMap') "{{{2
-    let g:tcommentSyntaxMap = {
-            \ 'vimMzSchemeRegion': 'scheme',
-            \ 'vimPerlRegion':     'perl',
-            \ 'vimPythonRegion':   'python',
-            \ 'vimRubyRegion':     'ruby',
-            \ 'vimTclRegion':      'tcl',
-            \ }
-endif
-
-" If you don't define these variables, TComment will use &commentstring 
-" instead. We override the default values here in order to have a blank after 
-" the comment marker. Block comments work only if we explicitly define the 
-" markup.
-" The format for block comments is similar to normal commentstrings with the 
-" exception that the format strings for blocks can contain a second line that 
-" defines how "middle lines" (see :h format-comments) should be displayed.
-
-" I personally find this style rather irritating but here is an alternative 
-" definition that does this left-handed bar thing
-if !exists("g:tcommentBlockC")
-    let g:tcommentBlockC = "/*%s */\n * "
-endif
-if !exists("g:tcommentBlockC2")
-    let g:tcommentBlockC2 = "/**%s */\n * "
-endif
-if !exists("g:tcommentInlineC")
-    let g:tcommentInlineC = "/* %s */"
-endif
-
-if !exists("g:tcommentBlockXML")
-    let g:tcommentBlockXML = "<!--%s-->\n  "
-endif
-if !exists("g:tcommentInlineXML")
-    let g:tcommentInlineXML = "<!-- %s -->"
-endif
-
-let g:tcommentFileTypesDirty = 1
-
-" Currently this function just sets a variable
-function! TCommentDefineType(name, commentstring)
-    if !exists('g:tcomment_'. a:name)
-        let g:tcomment_{a:name} = a:commentstring
-    endif
-    let g:tcommentFileTypesDirty = 1
-endf
-
-function! TCommentTypeExists(name)
-    return exists('g:tcomment_'. a:name)
-endf
-
-call TCommentDefineType('aap',              '# %s'             )
-call TCommentDefineType('ada',              '-- %s'            )
-call TCommentDefineType('apache',           '# %s'             )
-call TCommentDefineType('autoit',           '; %s'             )
-call TCommentDefineType('asm',              '; %s'             )
-call TCommentDefineType('awk',              '# %s'             )
-call TCommentDefineType('catalog',          '-- %s --'         )
-call TCommentDefineType('catalog_block',    "--%s--\n  "       )
-call TCommentDefineType('cpp',              '// %s'            )
-call TCommentDefineType('cpp_inline',       g:tcommentInlineC  )
-call TCommentDefineType('cpp_block',        g:tcommentBlockC   )
-call TCommentDefineType('css',              '/* %s */'         )
-call TCommentDefineType('css_inline',       g:tcommentInlineC  )
-call TCommentDefineType('css_block',        g:tcommentBlockC   )
-call TCommentDefineType('c',                '/* %s */'         )
-call TCommentDefineType('c_inline',         g:tcommentInlineC  )
-call TCommentDefineType('c_block',          g:tcommentBlockC   )
-call TCommentDefineType('cfg',              '# %s'             )
-call TCommentDefineType('conf',             '# %s'             )
-call TCommentDefineType('crontab',          '# %s'             )
-call TCommentDefineType('desktop',          '# %s'             )
-call TCommentDefineType('docbk',            '<!-- %s -->'      )
-call TCommentDefineType('docbk_inline',     g:tcommentInlineXML)
-call TCommentDefineType('docbk_block',      g:tcommentBlockXML )
-call TCommentDefineType('dosbatch',         'rem %s'           )
-call TCommentDefineType('dosini',           '; %s'             )
-call TCommentDefineType('dsl',              '; %s'             )
-call TCommentDefineType('dylan',            '// %s'            )
-call TCommentDefineType('eiffel',           '-- %s'            )
-call TCommentDefineType('eruby',            '<%%# %s%%>'       )
-call TCommentDefineType('gtkrc',            '# %s'             )
-call TCommentDefineType('gitcommit',        '# %s'             )
-call TCommentDefineType('haskell',          '-- %s'            )
-call TCommentDefineType('haskell_block',    "{-%s-}\n   "      )
-call TCommentDefineType('haskell_inline',   '{- %s -}'         )
-call TCommentDefineType('html',             '<!-- %s -->'      )
-call TCommentDefineType('html_inline',      g:tcommentInlineXML)
-call TCommentDefineType('html_block',       g:tcommentBlockXML )
-call TCommentDefineType('io',               '// %s'            )
-call TCommentDefineType('javaScript',       '// %s'            )
-call TCommentDefineType('javaScript_inline', g:tcommentInlineC )
-call TCommentDefineType('javaScript_block', g:tcommentBlockC   )
-call TCommentDefineType('javascript',       '// %s'            )
-call TCommentDefineType('javascript_inline', g:tcommentInlineC )
-call TCommentDefineType('javascript_block', g:tcommentBlockC   )
-call TCommentDefineType('java',             '/* %s */'         )
-call TCommentDefineType('java_inline',      g:tcommentInlineC  )
-call TCommentDefineType('java_block',       g:tcommentBlockC   )
-call TCommentDefineType('java_doc_block',   g:tcommentBlockC2  )
-call TCommentDefineType('jproperties',      '# %s'             )
-call TCommentDefineType('lisp',             '; %s'             )
-call TCommentDefineType('lynx',             '# %s'             )
-call TCommentDefineType('m4',               'dnl %s'           )
-call TCommentDefineType('mail',             '> %s'             )
-call TCommentDefineType('msidl',            '// %s'            )
-call TCommentDefineType('msidl_block',      g:tcommentBlockC   )
-call TCommentDefineType('nroff',            '.\\" %s'          )
-call TCommentDefineType('nsis',             '# %s'             )
-call TCommentDefineType('objc',             '/* %s */'         )
-call TCommentDefineType('objc_inline',      g:tcommentInlineC  )
-call TCommentDefineType('objc_block',       g:tcommentBlockC   )
-call TCommentDefineType('ocaml',            '(* %s *)'         )
-call TCommentDefineType('ocaml_inline',     '(* %s *)'         )
-call TCommentDefineType('ocaml_block',      "(*%s*)\n   "      )
-call TCommentDefineType('pascal',           '(* %s *)'         )
-call TCommentDefineType('pascal_inline',    '(* %s *)'         )
-call TCommentDefineType('pascal_block',     "(*%s*)\n   "      )
-call TCommentDefineType('perl',             '# %s'             )
-call TCommentDefineType('perl_block',       "=cut%s=cut"       )
-call TCommentDefineType('php',              '// %s'            )
-call TCommentDefineType('php_inline',       g:tcommentInlineC  )
-call TCommentDefineType('php_block',        g:tcommentBlockC   )
-call TCommentDefineType('php_2_block',      g:tcommentBlockC2  )
-call TCommentDefineType('po',               '# %s'             )
-call TCommentDefineType('prolog',           '%% %s'            )
-call TCommentDefineType('rc',               '// %s'            )
-call TCommentDefineType('readline',         '# %s'             )
-call TCommentDefineType('ruby',             '# %s'             )
-call TCommentDefineType('ruby_3',           '### %s'           )
-call TCommentDefineType('ruby_block',       "=begin rdoc%s=end")
-call TCommentDefineType('ruby_nodoc_block', "=begin%s=end"     )
-call TCommentDefineType('r',                '# %s'             )
-call TCommentDefineType('sbs',              "' %s"             )
-call TCommentDefineType('scheme',           '; %s'             )
-call TCommentDefineType('sed',              '# %s'             )
-call TCommentDefineType('sgml',             '<!-- %s -->'      )
-call TCommentDefineType('sgml_inline',      g:tcommentInlineXML)
-call TCommentDefineType('sgml_block',       g:tcommentBlockXML )
-call TCommentDefineType('sh',               '# %s'             )
-call TCommentDefineType('sql',              '-- %s'            )
-call TCommentDefineType('spec',             '# %s'             )
-call TCommentDefineType('sps',              '* %s.'            )
-call TCommentDefineType('sps_block',        "* %s."            )
-call TCommentDefineType('spss',             '* %s.'            )
-call TCommentDefineType('spss_block',       "* %s."            )
-call TCommentDefineType('tcl',              '# %s'             )
-call TCommentDefineType('tex',              '%% %s'            )
-call TCommentDefineType('tpl',              '<!-- %s -->'      )
-call TCommentDefineType('viki',             '%% %s'            )
-call TCommentDefineType('viki_3',           '%%%%%% %s'        )
-call TCommentDefineType('viki_inline',      '{cmt: %s}'        )
-call TCommentDefineType('vim',              '" %s'             )
-call TCommentDefineType('vim_3',            '""" %s'           )
-call TCommentDefineType('websec',           '# %s'             )
-call TCommentDefineType('xml',              '<!-- %s -->'      )
-call TCommentDefineType('xml_inline',       g:tcommentInlineXML)
-call TCommentDefineType('xml_block',        g:tcommentBlockXML )
-call TCommentDefineType('xs',               '// %s'            )
-call TCommentDefineType('xs_block',         g:tcommentBlockC   )
-call TCommentDefineType('xslt',             '<!-- %s -->'      )
-call TCommentDefineType('xslt_inline',      g:tcommentInlineXML)
-call TCommentDefineType('xslt_block',       g:tcommentBlockXML )
-call TCommentDefineType('yaml',             '# %s'             )
-
-
-" :line1,line2 TCommentAs commenttype
-command! -bang -complete=customlist,tcomment#FileTypes -range -nargs=+ TCommentAs 
+" :display: :[range]TCommentAs[!] commenttype ?ARGS...
+" TCommentAs requires g:tcomment_{filetype} to be defined.
+" With a bang '!', always comment the line.
+"
+" ARGS... are either (see also |tcomment#Comment()|):
+"   1. a list of key=value pairs
+"   2. 1-2 values for: ?commentBegin, ?commentEnd
+command! -bang -complete=customlist,tcomment#Complete -range -nargs=+ TCommentAs 
             \ call tcomment#CommentAs(<line1>, <line2>, "<bang>", <f-args>)
 
-" :line1,line2 TComment ?commentBegin ?commentEnd
-command! -bang -range -nargs=* TComment keepjumps call tcomment#Comment(<line1>, <line2>, 'G', "<bang>", <f-args>)
+" :display: :[range]TCommentRight[!] ?ARGS...
+" Comment the text to the right of the cursor. If a visual selection was 
+" made (be it block-wise or not), all lines are commented out at from 
+" the current cursor position downwards.
+" With a bang '!', always comment the line.
+"
+" ARGS... are either (see also |tcomment#Comment()|):
+"   1. a list of key=value pairs
+"   2. 1-2 values for: ?commentBegin, ?commentEnd
+command! -bang -range -nargs=* -complete=customlist,tcomment#CompleteArgs TCommentRight
+            \ keepjumps call tcomment#Comment(<line1>, <line2>, 'R', "<bang>", <f-args>)
 
-" :line1,line2 TCommentRight ?commentBegin ?commentEnd
-command! -bang -range -nargs=* TCommentRight keepjumps call tcomment#Comment(<line1>, <line2>, 'R', "<bang>", <f-args>)
+" :display: :[range]TCommentBlock[!] ?ARGS...
+" Comment as "block", e.g. use the {&ft}_block comment style. The 
+" commented text isn't indented or reformated.
+" With a bang '!', always comment the line.
+"
+" ARGS... are either (see also |tcomment#Comment()|):
+"   1. a list of key=value pairs
+"   2. 1-2 values for: ?commentBegin, ?commentEnd
+command! -bang -range -nargs=* -complete=customlist,tcomment#CompleteArgs TCommentBlock
+            \ keepjumps call tcomment#Comment(<line1>, <line2>, 'B', "<bang>", <f-args>)
 
-" :line1,line2 TCommentBlock ?commentBegin ?commentEnd
-command! -bang -range -nargs=* TCommentBlock keepjumps call tcomment#Comment(<line1>, <line2>, 'B', "<bang>", <f-args>)
+" :display: :[range]TCommentInline[!] ?ARGS...
+" Use the {&ft}_inline comment style.
+" With a bang '!', always comment the line.
+"
+" ARGS... are either (see also |tcomment#Comment()|):
+"   1. a list of key=value pairs
+"   2. 1-2 values for: ?commentBegin, ?commentEnd
+command! -bang -range -nargs=* -complete=customlist,tcomment#CompleteArgs TCommentInline
+            \ keepjumps call tcomment#Comment(<line1>, <line2>, 'I', "<bang>", <f-args>)
 
-" :line1,line2 TCommentInline ?commentBegin ?commentEnd
-command! -bang -range -nargs=* TCommentInline keepjumps call tcomment#Comment(<line1>, <line2>, 'I', "<bang>", <f-args>)
-
-" :line1,line2 TCommentMaybeInline ?commentBegin ?commentEnd
-command! -bang -range -nargs=* TCommentMaybeInline keepjumps call tcomment#Comment(<line1>, <line2>, 'i', "<bang>", <f-args>)
+" :display: :[range]TCommentMaybeInline[!] ?ARGS...
+" With a bang '!', always comment the line.
+"
+" ARGS... are either (see also |tcomment#Comment()|):
+"   1. a list of key=value pairs
+"   2. 1-2 values for: ?commentBegin, ?commentEnd
+command! -bang -range -nargs=* -complete=customlist,tcomment#CompleteArgs TCommentMaybeInline
+            \ keepjumps call tcomment#Comment(<line1>, <line2>, 'i', "<bang>", <f-args>)
 
 
 
 if (g:tcommentMapLeader1 != '')
-    exec 'noremap <silent> '. g:tcommentMapLeader1 .'<c-_> :TComment<cr>'
-    exec 'vnoremap <silent> '. g:tcommentMapLeader1 .'<c-_> :TCommentMaybeInline<cr>'
-    exec 'inoremap <silent> '. g:tcommentMapLeader1 .'<c-_> <c-o>:TComment<cr>'
+    exec 'noremap <silent> '. g:tcommentMapLeader1 . g:tcommentMapLeader1 .' :TComment<cr>'
+    exec 'vnoremap <silent> '. g:tcommentMapLeader1 . g:tcommentMapLeader1 .' :TCommentMaybeInline<cr>'
+    exec 'inoremap <silent> '. g:tcommentMapLeader1 . g:tcommentMapLeader1 .' <c-o>:TComment<cr>'
     exec 'noremap <silent> '. g:tcommentMapLeader1 .'p m`vip:TComment<cr>``'
     exec 'inoremap <silent> '. g:tcommentMapLeader1 .'p <c-o>:norm! m`vip<cr>:TComment<cr><c-o>``'
     exec 'noremap '. g:tcommentMapLeader1 .'<space> :TComment '
@@ -269,12 +122,12 @@ if (g:tcommentMapLeader1 != '')
 endif
 if (g:tcommentMapLeader2 != '')
     exec 'noremap <silent> '. g:tcommentMapLeader2 .'_ :TComment<cr>'
-    exec 'vnoremap <silent> '. g:tcommentMapLeader2 .'_ :TCommentMaybeInline<cr>'
+    exec 'xnoremap <silent> '. g:tcommentMapLeader2 .'_ :TCommentMaybeInline<cr>'
     exec 'noremap <silent> '. g:tcommentMapLeader2 .'p vip:TComment<cr>'
     exec 'noremap '. g:tcommentMapLeader2 .'<space> :TComment '
-    exec 'vnoremap <silent> '. g:tcommentMapLeader2 .'i :TCommentInline<cr>'
+    exec 'xnoremap <silent> '. g:tcommentMapLeader2 .'i :TCommentInline<cr>'
     exec 'noremap <silent> '. g:tcommentMapLeader2 .'r :TCommentRight<cr>'
-    exec 'vnoremap <silent> '. g:tcommentMapLeader2 .'r :TCommentRight<cr>'
+    exec 'xnoremap <silent> '. g:tcommentMapLeader2 .'r :TCommentRight<cr>'
     exec 'noremap '. g:tcommentMapLeader2 .'b :TCommentBlock<cr>'
     exec 'noremap '. g:tcommentMapLeader2 .'a :TCommentAs '
     exec 'noremap '. g:tcommentMapLeader2 .'n :TCommentAs <c-r>=&ft<cr> '
@@ -283,12 +136,12 @@ endif
 if (g:tcommentMapLeaderOp1 != '')
     exec 'nnoremap <silent> '. g:tcommentMapLeaderOp1 .' :let w:tcommentPos = getpos(".") \| set opfunc=tcomment#Operator<cr>g@'
     exec 'nnoremap <silent> '. g:tcommentMapLeaderOp1 .'c :let w:tcommentPos = getpos(".") \| set opfunc=tcomment#OperatorLine<cr>g@$'
-    exec 'vnoremap <silent> '. g:tcommentMapLeaderOp1 .' :TCommentMaybeInline<cr>'
+    exec 'xnoremap <silent> '. g:tcommentMapLeaderOp1 .' :TCommentMaybeInline<cr>'
 endif 
 if (g:tcommentMapLeaderOp2 != '')
     exec 'nnoremap <silent> '. g:tcommentMapLeaderOp2 .' :let w:tcommentPos = getpos(".") \| set opfunc=tcomment#OperatorAnyway<cr>g@'
     exec 'nnoremap <silent> '. g:tcommentMapLeaderOp2 .'c :let w:tcommentPos = getpos(".") \| set opfunc=tcomment#OperatorLineAnyway<cr>g@$'
-    exec 'vnoremap <silent> '. g:tcommentMapLeaderOp2 .' :TCommentMaybeInline<cr>'
+    exec 'xnoremap <silent> '. g:tcommentMapLeaderOp2 .' :TCommentMaybeInline<cr>'
 endif 
 
 finish
@@ -383,4 +236,20 @@ new: >)
 - tcomment#Operator defines w:tcommentPos if invoked repeatedly
 - s:GuessFileType: use len(getline()) instead of col()
 
+1.11
+- Support for erlang (thanks to Zhang Jinzhu)
+
+1.12
+- Moved the definition of some variables from plugin/tComment.vim to 
+autoload/tcomment.vim
+- Changed comment string for eruby (proposed by Vinicius Baggio)
+- Support for x86conf
+
+2.0
+- Enabled key=value pairs to configure commenting
+- Renamed the file plugin/tComment.vim to plugin/tcomment.vim
+- Renamed certain global functions to tcomment#...
+
+2.1
+- FIX
 
