@@ -1,8 +1,10 @@
-*xml-plugin.txt*  Help edit XML and SGML documents.                   v75
+*xml-plugin.txt*  Help edit XML and SGML documents.                  #version#
 
-                                   XML Edit      ~
+                                   XML Edit
 
 A filetype plugin to help edit XML and SGML documents.
+
+Version: 1.9.2
 
 This script provides some convenience when editing XML (and some SGML
 including HTML) formated documents. It allows you to jump to the beginning
@@ -29,7 +31,12 @@ NOTE: If you used the VIM 5.x version of this file (xmledit.vim) you'll need
 to comment out the section where you called it. It is no longer used in the
 VIM 6.x version. 
 
-Known Bugs      ~
+To disable the plugin (especially for systems that include this plugin as part
+of the distrobution) you can use the following line in your .vimrc:
+>
+    let loaded_xmledit = 1
+<
+Known Bugs 
 
 - This script will modify registers ". and "x; register "" will be restored.
 - < & > marks inside of a CDATA section are interpreted as actual XML tags
@@ -44,13 +51,13 @@ Known Bugs      ~
 
 ------------------------------------------------------------------------------
                                                          *xml-plugin-mappings*
-Mappings      ~
+Mappings 
 
 <LocalLeader> is a setting in VIM that depicts a prefix for scripts and
 plugins to use. By default this is the backslash key `\'. See |mapleader|
 for details.
 
-<LocalLeader>Space
+<LocalLeader><Space>
         Normal or Insert - Continue editing after the ending tag. This
         option requires xml_jump_string to be set to function. When a tag
         is completed it will append the xml_jump_string. Once this mapping
@@ -58,7 +65,7 @@ for details.
         of the curser and delete it leaving you in insert mode to continue
         editing.
 
-<LocalLeader><LocalLeader>
+<LocalLeader>w
         Normal - Will clear the entire file of left over xml_jump_string garbage.
         * This will also happen automatically when you save the file. *
 
@@ -84,7 +91,7 @@ for details.
 
 ------------------------------------------------------------------------------
                                                          *xml-plugin-settings*
-Options      ~
+Options 
 
 (All options must be placed in your |.vimrc| prior to the |ftplugin|
 command.)
@@ -98,6 +105,17 @@ xml_tag_completion_map
         you wanted Control-L to perform auto completion inmstead of typing a
         `>' place the following into your .vimrc: >
             let xml_tag_completion_map = "<C-l>"
+<
+xml_tag_syntax_prefixes
+        Sets a pattern that is used to distinguish XML syntax elements that
+        identify xml tags.  By defult the value is 'html\|xml\|docbk'.  This
+        means that all syntax items that start with "html", "xml" or "docbk" are
+        treated as XML tags.  In case a completion is triggered after a syntax
+        element that does not match this pattern the end tag will not be inserted.
+        The pattern should match at the beginning of a syntax element name.
+        If you edit XSLT files you probably want to add "xsl" to the list (note
+        the signle quotes): >
+            let xml_tag_syntax_prefixes = 'html\|xml\|xsl\|docbk'
 <
 xml_no_auto_nesting
         This turns off the auto nesting feature. After a completion is made
@@ -114,22 +132,49 @@ xml_use_xhtml
             let xml_use_xhtml = 1
 <
 xml_no_html
-        This turns of the support for HTML specific tags. Place this in your
+        This turns off the support for HTML specific tags. Place this in your
         .vimrc: >
             let xml_no_html = 1
 <
 xml_jump_string
-        This turns of the support for continuing edits after an ending tag.
+        This turns off the support for continuing edits after an ending tag.
         xml_jump_string can be any string how ever a simple character will
-        serfice. Pick a character or small string that is unique and will
+        suffice. Pick a character or small string that is unique and will
         not interfer with your normal editing. See the <LocalLeader>Space
         mapping for more.
         .vimrc: >
             let xml_jump_string = "`"
 <
 ------------------------------------------------------------------------------
+Using With Other File Types                             *xml-plugin-filetypes*
+
+This can be used with other file types besides XML. There are two ways to
+accomplish this. The plugin can be used as is for other languages or with extra
+features that are language specific via the callback method.
+See |xml-plugin-callbacks| for more info.
+
+The first method is simply to copy xml.vim or symbolically (or hard) link it
+to the new file type. For example:
+>
+    ftplugin/
+    |-xml.vim
+    |-php.vim -> xml.vim
+    `-xhtml.vim -> xml.vim
+<
+The second method expands on the idea of copying. It uses a callback method
+which can extend the functionality of the tags for that language. For example
+in an HTML document you might prefer your table tags to look like this:
+>
+    <table cellpadding="0" cellspacing="0" border="0">
+    </table>
+<
+But by just linking html.vim to xml.vim you would have to type all that in
+every time. The callback could allow you to type just <table> and it would add
+the attributes for you. The example in |xml-plugin-html| shows how to do this
+with HTML files.
+------------------------------------------------------------------------------
                                                         *xml-plugin-callbacks*
-Callback Functions      ~
+Callback Functions 
 
 A callback function is a function used to customize features on a per tag
 basis. For example say you wish to have a default set of attributs when you
@@ -155,7 +200,7 @@ XmlAttribCallback
         This is a generic callback for xml tags intended to add attributes.
 
                                                              *xml-plugin-html*
-Callback Example      ~
+Callback Example 
 
 The following is an example of using XmlAttribCallback in your .vimrc
 >
@@ -223,4 +268,3 @@ The following is a sample html.vim file type plugin you could use:
   runtime ftplugin/xml.vim
 <
 
- vim:tw=78:ts=8:ft=help:norl:
