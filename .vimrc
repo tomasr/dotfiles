@@ -8,7 +8,7 @@ source $VIMRUNTIME/mswin.vim
 set bg=dark
 let g:zenburn_high_Contrast = 1
 let g:liquidcarbon_high_contrast = 1
-let g:molokai_original = 1
+let g:molokai_original = 0
 set t_Co=256
 colorscheme molokai
 
