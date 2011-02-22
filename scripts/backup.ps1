@@ -30,7 +30,7 @@ write (stars) "`r`n`r`n" >> $log
 $objfiles = ('*.swp *.obj *.exe *.dll *.pdb *.pch *.idb *.ilk *.lib *.lck *.ncb *.plg *.tlb *.suo')
 $folders = ( 
    ('e:\archive', ''), 
-   ('e:\devdeo', ''),
+   ('e:\shared', ''),
    ('e:\git-data', ''),
    ('e:\home', '*.swp *.vdi'),
    ('e:\projects', $objfiles),
