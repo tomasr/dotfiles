@@ -16,7 +16,7 @@ set-variable -name HOME -value (resolve-path $env:Home) -force
 #
 # global variables and core env variables 
 #
-$TOOLS = 'e:\tools'
+$TOOLS = '\tools'
 $SCRIPTS = "$HOME\scripts"
 $env:EDITOR = 'gvim.exe'
 
