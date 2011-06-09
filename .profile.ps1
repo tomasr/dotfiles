@@ -16,7 +16,8 @@ set-variable -name HOME -value (resolve-path $env:Home) -force
 #
 # global variables and core env variables 
 #
-$TOOLS = '\tools'
+$HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
+$TOOLS = "$HOME_ROOT\tools"
 $SCRIPTS = "$HOME\scripts"
 $env:EDITOR = 'gvim.exe'
 
