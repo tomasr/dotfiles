@@ -232,3 +232,5 @@ set-alias ss select-string
 # Other environment configurations
 ###############################################################################
 set-location $HOME
+# OS default location needs to be set as well
+[System.Environment]::CurrentDirectory = $HOME
