@@ -6,97 +6,47 @@
 # and VS2008. Failing that, falls back to .NET 3.0/VS2005.
 ###############################################################################
 
-$global:NETFXDIR = "$env:WINDIR\Microsoft.NET\Framework"
-$global:FX20 = "$NETFXDIR\v2.0.50727"
-$global:FX35 = "$NETFXDIR\v3.5"
-$global:LIBDIRS = @()
-$global:DEVPATHS = @()
-$global:INCDIRS = @()
+param([string]$version = 'vs2010')
 
-
-function add-path {
-   $global:DEVPATHS = $global:DEVPATHS + $args
-}
-function append-lib {
-   $global:LIBDIRS = $global:LIBDIRS + $args
-}
-function append-include {
-   $global:INCDIRS = $global:INCDIRS + $args
-}
-function get-vsdir([string] $version) {
-   $regpath = "HKLM:SOFTWARE\Microsoft\VisualStudio\$version"
-   if ( test-path($regpath) ) {
-      $regKey = get-itemproperty $regpath
-      return $regkey.InstallDir
-   }
-   return $null
-}
-function set-vsenv([string] $version) {
-   $VSDIR = (get-vsdir $version)
-   if ( $VSDIR -ne $null ) {
-      add-path $VSDIR
-      add-path "$VSDIR..\..\VC\bin"
-      add-path "$VSDIR..\Tools"
-
-      append-include "$VSDIR..\..\VC\include"
-      append-lib "$VSDIR..\..\VC\lib"
-      return $true
-   }
-   return $false
-}
-function get-psdkdir {
-   $regpath = "HKLM:SOFTWARE\Microsoft\Microsoft SDKs\Windows\"
-   if ( test-path($regpath) ) {
-      $regKey = get-itemproperty $regpath
-      return $regkey.CurrentInstallFolder
-   }
-   # try the .NET framework SDK
-   $regpath = "HKLM:SOFTWARE\Microsoft\Microsoft SDKs\.NETFramework\v2.0"
-   if ( test-path($regpath) ) {
-      $regKey = get-itemproperty $regpath
-      return $regkey.InstallationFolder
-   }
-   return $null
-}
-function set-psdkenv {
-   $sdkdir = (get-psdkdir)
-   if ( ($sdkdir -ne $null) -and (test-path $sdkdir) ) {
-      add-path "$sdkdir\bin"
-      if ( test-path "$sdkdir\include" ) { 
-         append-include "$sdkdir\include" 
-      }
-      if ( test-path "$sdkdir\lib" ) {
-         append-lib "$sdkdir\lib"
-      }
-   }
-}
-function script:join($values) {
-   [string]::join(';', $values)
+$oldEnv = @{ }
+if ( test-path variable:'global:PSDEVENV' ) {
+  $oldEnv = $global:PSDEVENV
 }
 
-function set-devenv($vsVersion, $sdkVersion) {
-   if ( $sdkVersion -ne $null ) {
-      [void] (set-psdkenv $sdkVersion)
-   }
-   if ( $vsVersion -ne $null ) {
-      [void] (set-vsenv $vsVersion)
-   }
+function Prepend-IfExists {
+  PARAM(
+      [string] $newPath,
+      [string] $envVar = "PATH"
+    )
+  $envPath = ("Env:\" + $envVar)
+  $oldPath = get-content $envPath -ea:SilentlyContinue
+  if ( $newPath -ne $null ) {
+    if ( $oldPath -ne $null ) { $newPath = $newPath + ";" + $oldPath }
+    set-content $envPath $newPath
+  }
 }
 
-#set-devenv '' 'v6.0A'
-set-psdkenv
-# if .NET 3.5 is installed, default to that, otherwise use 2.0
-if ( test-path($FX35) ) {
-   add-path $FX35
-}
-add-path $FX20
-[void] (set-vsenv "9.0")
-[void] (set-vsenv "8.0")
-
-$env:LIB = join($global:LIBDIRS)
-$env:INCLUDE = join($global:INCDIRS)
-$newpaths = (join($global:DEVPATHS))
-if ( -not $env:PATH.contains($newpaths) ) {
-   $env:PATH = $env:PATH + ';' + $newpaths
+#
+# clean up the environment from the previous values set
+#
+if ( $oldEnv.Keys.Count -gt 0 ) {
+  $oldEnv.Keys | %{
+    $value = get-content "Env:\$_"
+    if ( $value -ne $null ) {
+      $value = $value.Replace($oldEnv[$_] + ';', '')
+      set-content "Env:\$_" $value
+    }
+  }
 }
 
+$newEnv = @{ }
+if ( -not [String]::IsNullOrEmpty($version) ) {
+  $newEnv = & "$SCRIPTS\$version.ps1"
+}
+
+if ( $newEnv.Keys.Count -gt 0 ) {
+  $newEnv.Keys | %{
+    Prepend-IfExists $newEnv[$_] $_
+  }
+}
+$global:PSDEVENV = $newEnv

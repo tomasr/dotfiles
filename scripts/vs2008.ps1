@@ -30,7 +30,7 @@ if ($VS2008Key -ne $null) {
       }
       else {
         if (test-path "HKCU:SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows") {
-          $WindowsSdkDir = (get-itemproperty "HKCU:SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows").CurrentInstallFolder
+            $WindowsSdkDir = (get-itemproperty "HKCU:SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows").CurrentInstallFolder
         }
         else {
           if (test-path "HKCU:SOFTWARE\Microsoft\Microsoft SDKs\Windows") {

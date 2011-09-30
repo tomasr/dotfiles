@@ -14,7 +14,7 @@ set-variable -name HOME -value (resolve-path $env:Home) -force
 (get-psprovider FileSystem).Home = $HOME
 
 #
-# global variables and core env variables 
+# global variables and core env variables
 #
 $HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
 $TOOLS = "$HOME_ROOT\tools"
@@ -25,7 +25,7 @@ $env:EDITOR = 'gvim.exe'
 # set path to include my usual directories
 # and configure dev environment
 #
-function script:append-path { 
+function script:append-path {
    if ( -not $env:PATH.contains($args) ) {
       $env:PATH += ';' + $args
    }
@@ -39,7 +39,6 @@ append-path "$TOOLS\vim"
 append-path "$TOOLS\gnu"
 append-path "$TOOLS\git\bin"
 
-& "$SCRIPTS\devenv.ps1"
 & "$SCRIPTS\javaenv.ps1"
 
 #

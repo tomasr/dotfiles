@@ -3,6 +3,7 @@
 # http://bradwilson.typepad.com/blog/2010/03/vsvars2010ps1.html
 #
 $_reg = ("HKCU:\Software", "HKCU:\Software\Wow6432Node", "HKLM:\Software", "HKLM:\Software\Wow6432Node")
+$_env = @{ }
 
 function ?? {
   PARAM([object[]] $values)
@@ -16,12 +17,17 @@ function Prepend-IfExists {
       [string] $newPath,
       [string] $envVar = "PATH"
     )
-  $envPath = ("Env:\" + $envVar)
-  $oldPath = get-content $envPath -ea:SilentlyContinue
+  $oldPath = $_env[$envVar]
   if (($newPath -ne $null) -and (test-path $newPath)) {
     if ($oldPath -ne $null) { $newPath = $newPath + ";" + $oldPath }
-    set-content $envPath $newPath
+    $_env[$envVar] = $newPath
   }
+#  $envPath = ("Env:\" + $envVar)
+#  $oldPath = get-content $envPath -ea:SilentlyContinue
+#  if (($newPath -ne $null) -and (test-path $newPath)) {
+#    if ($oldPath -ne $null) { $newPath = $newPath + ";" + $oldPath }
+#    set-content $envPath $newPath
+#  }
 }
 
 $VsInstallDir = ?? ($_reg | %{ (get-itemproperty -ea:SilentlyContinue ($_ + "\Microsoft\VisualStudio\SxS\VS7"))."10.0" })
@@ -63,4 +69,6 @@ if (($VsInstallDir -ne $null) -and (test-path $VsInstallDir)) {
   Prepend-IfExists ($FrameworkDir + $Framework35Version) "LIBPATH"
   Prepend-IfExists ($FrameworkDir + $FrameworkVersion)   "LIBPATH"
 }
+
+return $_env
 
