@@ -39,6 +39,7 @@ append-path "$TOOLS\vim"
 append-path "$TOOLS\gnu"
 append-path "$TOOLS\git\bin"
 
+& "$SCRIPTS\devenv.ps1" 'vs2010'
 & "$SCRIPTS\javaenv.ps1"
 
 #

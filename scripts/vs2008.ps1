@@ -1,4 +1,5 @@
 # by Brad Wilson
+$_env = @{ }
 $VS2008Key = $null
 
 if (test-path HKLM:SOFTWARE\Wow6432Node\Microsoft\VisualStudio\9.0) {
@@ -44,11 +45,11 @@ if ($VS2008Key -ne $null) {
     }
 
     $FrameworkKey = get-itemproperty HKLM:SOFTWARE\Microsoft\.NETFramework
-    $env:FrameworkDir = $FrameworkKey.InstallRoot
-    $env:FrameworkVersion = $VS2008Key."CLR Version"
-    $env:Framework35Version = "v3.5"
+    $_env['FrameworkDir'] = $FrameworkKey.InstallRoot
+    $_env['FrameworkVersion'] = $VS2008Key."CLR Version"
+    $_env['Framework35Version'] = "v3.5"
 
-    $env:DevEnvDir = $VS2008Key.InstallDir
+    $_env['DevEnvDir'] = $VS2008Key.InstallDir
 
     # PATH environment settings
 
@@ -63,7 +64,7 @@ if ($VS2008Key -ne $null) {
     { $paths += join-path $WindowsSdkDir "bin" }
 
     $pathText = [string]::Join(";",$paths)
-    $env:PATH = $pathText + ";" + $env:PATH
+    $_env['PATH'] = $pathText
 
     # INCLUDE environment settings
 
@@ -79,7 +80,7 @@ if ($VS2008Key -ne $null) {
     if ($includes.Count -gt 0)
     {
       $includeText = [string]::Join(";",$includes)
-      $env:INCLUDE = $includeText + ";" + $env:INCLUDE
+      $_env['INCLUDE'] = $includeText
     }
 
     # LIB environment settings
@@ -96,29 +97,31 @@ if ($VS2008Key -ne $null) {
     if ($libs.Count -gt 0)
     {
       $libText = [string]::Join(";",$libs)
-      $env:LIB = $libText + ";" + $env:LIB
+      $_env['LIB'] = $libText
     }
 
     # LIBPATH environment settings
 
     $libpaths = @()
 
-    $libpaths += join-path $env:FrameworkDir $env:Framework35Version
-    $libpaths += join-path $env:FrameworkDir $env:FrameworkVersion
+    $libpaths += join-path $_env['FrameworkDir'] $_env['Framework35Version']
+    $libpaths += join-path $_env['FrameworkDir'] $_env['FrameworkVersion']
     if (test-path (join-path $vcPath "atlmfc\lib"))
     { $libpaths += join-path $vcPath "atlmfc\lib" }
     if (test-path (join-path $vcPath "lib"))
     { $libpaths += join-path $vcPath "lib" }
 
     $libpathsText = [string]::Join(";",$libpaths)
-    $env:LIBPATH = $libpathsText + ";" + $env:LIBPATH
+    $_env['LIBPATH'] = $libpathsText
 
-    $env:VSINSTALLDIR = $vsPath
-    $env:VCINSTALLDIR = $vcPath
-    $env:WINDOWSSDKDIR = $WindowsSdkDir
+    $_env['VSINSTALLDIR'] = $vsPath
+    $_env['VCINSTALLDIR'] = $vcPath
+    $_env['WINDOWSSDKDIR'] = $WindowsSdkDir
   }
   else {
     write-error "Couldn't find the Visual Studio 2008 installation directory."
   }
 }
+
+return $_env
 
