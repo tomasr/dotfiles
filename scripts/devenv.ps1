@@ -33,7 +33,11 @@ if ( $oldEnv.Keys.Count -gt 0 ) {
   $oldEnv.Keys | %{
     $value = get-content "Env:\$_"
     if ( $value -ne $null ) {
-      $value = $value.Replace($oldEnv[$_] + ';', '')
+      if ( $value -eq $oldEnv[$_] ) {
+        $value = ''
+      } else {
+        $value = $value.Replace($oldEnv[$_] + ';', '')
+      }
       set-content "Env:\$_" $value
     }
   }

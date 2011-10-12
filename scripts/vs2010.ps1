@@ -64,10 +64,10 @@ if (($VsInstallDir -ne $null) -and (test-path $VsInstallDir)) {
   Prepend-IfExists ($VcInstallDir + "ATLMFC\INCLUDE") "INCLUDE"
   Prepend-IfExists ($VcInstallDir + "INCLUDE")        "INCLUDE"
 
-  Prepend-IfExists ($VcInstallDir + "ATLMFC\LIB")        "LIBPATH"
-  Prepend-IfExists ($VcInstallDir + "LIB")               "LIBPATH"
-  Prepend-IfExists ($FrameworkDir + $Framework35Version) "LIBPATH"
-  Prepend-IfExists ($FrameworkDir + $FrameworkVersion)   "LIBPATH"
+  Prepend-IfExists ($VcInstallDir + "ATLMFC\LIB")        "LIB"
+  Prepend-IfExists ($VcInstallDir + "LIB")               "LIB"
+  Prepend-IfExists ($FrameworkDir + $Framework35Version) "LIB"
+  Prepend-IfExists ($FrameworkDir + $FrameworkVersion)   "LIB"
 }
 
 return $_env
