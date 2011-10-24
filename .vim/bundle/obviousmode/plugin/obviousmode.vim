@@ -1,12 +1,14 @@
 " ObviousMode: Clearly indicate visually whether Vim is in insert mode via the
 " StatusLine highlight group.
 "
-" 1.22, 2010.09.14
+" 1.24, 2011.10.13
 "
 " Brian Lewis <brian@lorf.org>
 " Sergey Vlasov <sergey.vlsv@gmail.com>
 "
 " Thank you:
+"   Salman Halim <salmanhalim@gmail.com>
+"   Tom <tqueste@gmail.com>
 "   frogonwheels @ freenode #vim
 "   Markus Braun
 "   Erik Falor
@@ -23,27 +25,27 @@
 "        (see :h highlight-args)
 
 if &cp || exists('g:loaded_obviousmode')
-    finish
+  finish
 endif
 
 if !exists('g:obviousModeInsertHi')
-    let g:obviousModeInsertHi = 'term=reverse ctermbg=52'
+  let g:obviousModeInsertHi = 'term=reverse ctermbg=52 guibg=darkred'
 endif
 
 if !exists('g:obviousModeCmdwinHi')
-    let g:obviousModeCmdwinHi = 'term=reverse ctermbg=22'
+  let g:obviousModeCmdwinHi = 'term=reverse ctermbg=22 guibg=darkblue'
 endif
 
 if !exists('g:obviousModeModifiedCurrentHi')
-    let g:obviousModeModifiedCurrentHi = 'term=reverse ctermbg=30'
+  let g:obviousModeModifiedCurrentHi = 'term=reverse ctermbg=30 guibg=darkcyan'
 endif
 
 if !exists('g:obviousModeModifiedNonCurrentHi')
-    let g:obviousModeModifiedNonCurrentHi = 'term=reverse ctermbg=30'
+  let g:obviousModeModifiedNonCurrentHi = 'term=reverse ctermbg=30 guibg=darkcyan'
 endif
 
 if !exists('g:obviousModeModifiedVertSplitHi')
-    let g:obviousModeModifiedVertSplitHi = 'term=reverse ctermfg=22 ctermbg=30'
+  let g:obviousModeModifiedVertSplitHi = 'term=reverse ctermfg=22 ctermbg=30 guifg=darkblue guibg=darkcyan'
 endif
 
 let s:isInsertMode = 0
@@ -53,88 +55,91 @@ let s:atCmdwin = 0
 " make this once, make copies of it later
 let s:hlAttrs = {}
 for n in ['term', 'cterm', 'ctermfg', 'ctermbg', 'gui', 'guifg', 'guibg', 'guisp']
-    let s:hlAttrs[n] = 'NONE'
+  let s:hlAttrs[n] = 'NONE'
 endfor
 
 let s:originalHi = {}
 function! s:SaveOriginalHi()
-    for n in ['StatusLine', 'StatusLineNC', 'VertSplit']
+  for n in ['StatusLine', 'StatusLineNC', 'VertSplit']
     " capture current values of highlight attrs
     let l:orig = ''
-        redir => l:orig | silent exec 'highlight '.n | redir END
+    redir => l:orig | silent exec 'highlight '.n | redir END
 
     " parse out attributes and values, put into dict
     let l:hlAttrs = copy(s:hlAttrs)
     for token in split(l:orig)[2:-1]
-        let [attr, value] = split(token, '=')
-        let l:hlAttrs[attr] = value
+      if (match(token, '=') < 0)
+        continue
+      endif
+      let [attr, value] = split(token, '=')
+      let l:hlAttrs[attr] = value
     endfor
 
     " save augmented original attributes
-        let s:originalHi[n] = join(map(items(l:hlAttrs), 'v:val[0]."=".v:val[1]'))
-    endfor
+    let s:originalHi[n] = join(map(items(l:hlAttrs), 'v:val[0]."=".v:val[1]'))
+  endfor
 endfunction
 
 function! s:HasModifiedBuffers()
-    let l:NBuffers=bufnr('$')
-    let l:i = 0
+  let l:NBuffers=bufnr('$')
+  let l:i = 0
 
-    while (l:i <= l:NBuffers)
-        let l:i = l:i + 1
-        let l:BufName = bufname(l:i)
-        if(getbufvar(l:i, '&modified') == 1)
-            return 1
-        endif
-    endwhile
+  while (l:i <= l:NBuffers)
+    let l:i = l:i + 1
+    let l:BufName = bufname(l:i)
+    if (getbufvar(l:i, '&modified') == 1)
+      return 1
+    endif
+  endwhile
 
-    return 0
+  return 0
 endfunction
 
 function! s:InsertEnter()
-    let s:isInsertMode = 1
-    exec 'hi StatusLine '.g:obviousModeInsertHi
+  let s:isInsertMode = 1
+  exec 'hi StatusLine '.g:obviousModeInsertHi
 endfunction
 
 function! s:InsertLeave()
-    let s:isInsertMode = 0
-    if s:hasModifiedBuffers
-        exec 'hi StatusLine '.g:obviousModeModifiedCurrentHi
-    else
-        exec 'hi StatusLine '.s:originalHi['StatusLine']
-    endif
+  let s:isInsertMode = 0
+  if s:hasModifiedBuffers
+    exec 'hi StatusLine '.g:obviousModeModifiedCurrentHi
+  else
+    exec 'hi StatusLine '.s:originalHi['StatusLine']
+  endif
 endfunction
 
 function! s:CmdwinEnter()
-    let s:atCmdwin = 1
-    exec 'hi StatusLine '.g:obviousModeCmdwinHi
+  let s:atCmdwin = 1
+  exec 'hi StatusLine '.g:obviousModeCmdwinHi
 endfunction
 
 function! s:CmdwinLeave()
-    let s:atCmdwin = 0
-    if s:hasModifiedBuffers
-        exec 'hi StatusLine '.g:obviousModeModifiedCurrentHi
-    else
-        exec 'hi StatusLine '.s:originalHi['StatusLine']
-    endif
+  let s:atCmdwin = 0
+  if s:hasModifiedBuffers
+    exec 'hi StatusLine '.g:obviousModeModifiedCurrentHi
+  else
+    exec 'hi StatusLine '.s:originalHi['StatusLine']
+  endif
 endfunction
 
 function! s:BufferChanged()
-    let s:hasModifiedBuffers = s:HasModifiedBuffers()
-    if s:hasModifiedBuffers
-        if !s:isInsertMode && !s:atCmdwin
-            exec 'hi StatusLine '.g:obviousModeModifiedCurrentHi
-        endif
+  let s:hasModifiedBuffers = s:HasModifiedBuffers()
+  if s:hasModifiedBuffers
+    if !s:isInsertMode && !s:atCmdwin
+      exec 'hi StatusLine '.g:obviousModeModifiedCurrentHi
+    endif
 
-        exec 'hi StatusLineNC '.g:obviousModeModifiedNonCurrentHi
-        exec 'hi VertSplit '.g:obviousModeModifiedVertSplitHi
-    else
-        if !s:isInsertMode && !s:atCmdwin
-            exec 'hi StatusLine '.s:originalHi['StatusLine']
-        endif
+    exec 'hi StatusLineNC '.g:obviousModeModifiedNonCurrentHi
+    exec 'hi VertSplit '.g:obviousModeModifiedVertSplitHi
+  else
+    if !s:isInsertMode && !s:atCmdwin
+      exec 'hi StatusLine '.s:originalHi['StatusLine']
+    endif
 
-        exec 'hi StatusLineNC '.s:originalHi['StatusLineNC']
-        exec 'hi VertSplit '.s:originalHi['VertSplit']
-    endi
+    exec 'hi StatusLineNC '.s:originalHi['StatusLineNC']
+    exec 'hi VertSplit '.s:originalHi['VertSplit']
+  endif
 endfunction
 
 au VimEnter,ColorScheme * call s:SaveOriginalHi()

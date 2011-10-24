@@ -18,7 +18,7 @@ function Prepend-IfExists {
       [string] $envVar = "PATH"
     )
   $oldPath = $_env[$envVar]
-  if (($newPath -ne $null) -and (test-path $newPath)) {
+  if ((-not [String]::IsNullOrEmpty($newPath)) -and (test-path $newPath)) {
     if ($oldPath -ne $null) { $newPath = $newPath + ";" + $oldPath }
     $_env[$envVar] = $newPath
   }
@@ -59,7 +59,7 @@ if (($VsInstallDir -ne $null) -and (test-path $VsInstallDir)) {
   Prepend-IfExists ($VcInstallDir + "bin")                            "PATH"
   Prepend-IfExists ($VsInstallDir + "Common7\IDE")                    "PATH"
   Prepend-IfExists ($VsInstallDir + "VSTSDB\Deploy")                  "PATH"
-  Prepend-IfExists ($FSharpInstallDir)                                "PATH"
+  #Prepend-IfExists ($FSharpInstallDir)                                "PATH"
 
   Prepend-IfExists ($VcInstallDir + "ATLMFC\INCLUDE") "INCLUDE"
   Prepend-IfExists ($VcInstallDir + "INCLUDE")        "INCLUDE"
