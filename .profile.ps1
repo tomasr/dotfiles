@@ -25,9 +25,11 @@ $env:EDITOR = 'gvim.exe'
 # set path to include my usual directories
 # and configure dev environment
 #
-function script:append-path {
-   if ( -not $env:PATH.contains($args) ) {
-      $env:PATH += ';' + $args
+function script:append-path([string] $path ) {
+   if ( -not [string]::IsNullOrEmpty($path) ) {
+      if ( (test-path $path) -and (-not $env:PATH.contains($path)) ) {
+         $env:PATH += ';' + $path
+      }
    }
 }
 
@@ -38,6 +40,7 @@ append-path (resolve-path "$TOOLS\nant-*")
 append-path "$TOOLS\vim"
 append-path "$TOOLS\gnu"
 append-path "$TOOLS\git\bin"
+append-path "$($env:WINDIR)\system32\inetsrv"
 
 & "$SCRIPTS\devenv.ps1" 'vs2010'
 & "$SCRIPTS\javaenv.ps1"
