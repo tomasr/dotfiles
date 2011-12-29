@@ -10,7 +10,7 @@ let g:zenburn_high_Contrast = 1
 let g:liquidcarbon_high_contrast = 1
 let g:molokai_original = 0
 set t_Co=256
-colorscheme molokai
+colorscheme nu42dark
 
 if has("gui_running")
    " set default size: 90x35
@@ -40,7 +40,7 @@ set wrap
 set linebreak
 
 if has("win32") || has("win64")
-   set guifont=Envy\ Code\ R:h12.5
+   set guifont=Ubuntu\ Mono:h13.5
    let Tlist_Ctags_Cmd = 'e:\Tools\ctags.exe'
    set directory=$TMP
    if !has("gui_running")
