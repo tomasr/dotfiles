@@ -57,8 +57,8 @@ if ($VS2008Key -ne $null) {
     $paths += $env:DevEnvDir
     $paths += join-path $vcPath "BIN"
     $paths += join-path $vsPath "Common7\Tools"
-    $paths += join-path $env:FrameworkDir $env:Framework35Version
-    $paths += join-path $env:FrameworkDir $env:FrameworkVersion
+    $paths += join-path $_env['FrameworkDir'] $env:Framework35Version
+    $paths += join-path $_env['FrameworkDir'] $env:FrameworkVersion
     $paths += join-path $vcPath "VCPackages"
     if (test-path (join-path $WindowsSdkDir "bin"))
     { $paths += join-path $WindowsSdkDir "bin" }
