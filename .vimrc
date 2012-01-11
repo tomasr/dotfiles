@@ -20,9 +20,6 @@ if has("gui_running")
    " No menus and no toolbar
    set guioptions-=m
    set guioptions-=T
-   let g:obviousModeInsertHi = "guibg=Black guifg=White"
-else
-   let g:obviousModeInsertHi = "ctermfg=253 ctermbg=16"
 endif
 
 set modeline
