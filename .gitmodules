@@ -18,3 +18,7 @@
 	path = .vim/bundle/vim-ku
 	url = https://github.com/emonkak/vim-ku.git
 	ignore = dirty
+[submodule ".vim/bundle/vim-rails"]
+	path = .vim/bundle/vim-rails
+	url = https://github.com/tpope/vim-rails.git
+	ignore = dirty
