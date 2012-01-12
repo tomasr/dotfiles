@@ -26,10 +26,6 @@
 	path = .vim/bundle/rainbow_parentheses
 	url = https://github.com/kien/rainbow_parentheses.vim.git
 	ignore = dirty
-[submodule ".vim/plugin/vim-surround"]
-	path = .vim/plugin/vim-surround
-	url = https://github.com/tpope/vim-surround.git
-	ignore = dirty
 [submodule ".vim/bundle/vim-tcomment"]
 	path = .vim/bundle/vim-tcomment
 	url = https://github.com/tomtom/tcomment_vim.git
