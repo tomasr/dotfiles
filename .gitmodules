@@ -34,3 +34,7 @@
 	path = .vim/bundle/vim-tcomment
 	url = https://github.com/tomtom/tcomment_vim.git
 	ignore = dirty
+[submodule ".vim/bundle/xmledit"]
+	path = .vim/bundle/xmledit
+	url = https://github.com/nistude/xmledit.git
+	ignore = dirty
