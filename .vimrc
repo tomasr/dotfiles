@@ -2,16 +2,20 @@ set runtimepath=~/.vim,$VIMRUNTIME,~/.vim/after
 " enable clipboard and other Win32 features
 source $VIMRUNTIME/mswin.vim
 
+" Use pathogen.vim to manage and load plugins
+call pathogen#runtime_append_all_bundles()
+call pathogen#helptags()
+
 "
 " appearance options
 "
 set bg=dark
 let g:zenburn_high_Contrast = 1
 let g:liquidcarbon_high_contrast = 1
-let g:molokai_original = 0
+let g:molokai_original = 1
 let g:Powerline_cache_file = expand('$TMP/Powerline.cache')
 set t_Co=256
-colorscheme nu42dark
+colorscheme molokai
 
 if has("gui_running")
    " set default size: 90x35
@@ -99,11 +103,6 @@ inoremap <C-Space> <C-X><C-O>
 " Windows like movements for long lines with wrap enabled:
 noremap j gj
 noremap k gk
-
-" Use pathogen.vim to manage and load plugins
-call pathogen#runtime_append_all_bundles()
-call pathogen#helptags()
-
 
 " disable warnings from NERDCommenter:
 let g:NERDShutUp = 1
