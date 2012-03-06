@@ -38,3 +38,7 @@
 	path = .vim/bundle/vim-surround
 	url = https://github.com/tpope/vim-surround.git
 	ignore = dirty
+[submodule ".vim/bundle/vim-ps1"]
+	path = .vim/bundle/vim-ps1
+	url = https://github.com/PProvost/vim-ps1.git
+	ignore = dirty
