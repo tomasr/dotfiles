@@ -13,6 +13,8 @@ set bg=dark
 let g:zenburn_high_Contrast = 1
 let g:liquidcarbon_high_contrast = 1
 let g:molokai_original = 1
+let g:Powerline_symbols = 'compatible'
+let g:Powerline_cache_enabled = 1
 let g:Powerline_cache_file = expand('$TMP/Powerline.cache')
 set t_Co=256
 colorscheme molokai
