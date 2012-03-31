@@ -11,9 +11,8 @@ ls "$h\dotfiles" | %{
          if ( $_.PSIsContainer ) {
             # try to unlink first
             linkd.exe "$h\$($_.Name)" /d
-         } else {
-            rm -r -force "$h\$($_.Name)"
          }
+         rm -r -force "$h\$($_.Name)"
       }
       if ( $_.PSIsContainer ) {
          linkd.exe "$h\$($_.Name)" $_.FullName
