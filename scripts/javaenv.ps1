@@ -20,17 +20,15 @@ function script:append-classpath {
 $baseloc = "$env:ProgramFiles\Java\"
 if ( (test-path $baseloc) ) {
    $sdkdir = (resolve-path "$baseloc\jdk*")
-   if ( (test-path $sdkdir) ) {
+   if ( $sdkdir -ne $null -and (test-path $sdkdir) ) {
       $env:JDK_HOME = $sdkdir
       append-path "$sdkdir\bin"
-      #append-classpath "$sdkdir\lib"
    }
 
    $jredir = (resolve-path "$baseloc\jre*")
-   if ( (test-path $jredir) ) {
+   if ( $jredir -ne $null -and (test-path $jredir) ) {
       $env:JAVA_HOME = $jredir
       append-path "$kredir\bin"
-      #append-classpath "$jdkdir\lib"
    }
    append-classpath "."
 }
