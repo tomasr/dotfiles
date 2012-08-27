@@ -222,6 +222,19 @@ function remove-vhd($vhdfile) {
    $script | diskpart
 }
 
+
+# SID mapping functions
+function Resolve-SID($stringSid) {
+  $objSID = New-Object System.Security.Principal.SecurityIdentifier($stringSid) 
+  $objUser = $objSID.Translate([System.Security.Principal.NTAccount]) 
+  $objUser.Value
+}
+function Resolve-User($user) {
+  $objUser = New-Object System.Security.Principal.NTAccount($user) 
+  $objSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier]) 
+  $objSID.Value
+}
+
 # load session helpers
 ."$SCRIPTS\sessions.ps1"
 
