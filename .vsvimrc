@@ -9,3 +9,4 @@ set clipboard+=unnamed  " Yanks go on clipboard instead.
 set incsearch " incremental searching on
 set hlsearch " highlight all matches
 set smartcase
+set number ruler " show line numbers
