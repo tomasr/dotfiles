@@ -13,9 +13,17 @@ set bg=dark
 let g:zenburn_high_Contrast = 1
 let g:liquidcarbon_high_contrast = 1
 let g:molokai_original = 1
-let g:Powerline_symbols = 'compatible'
-let g:Powerline_cache_enabled = 1
-let g:Powerline_cache_file = expand('$TMP/Powerline.cache')
+
+let g:airline_left_sep='['
+let g:airline_right_sep=']'
+let g:airline_linecolumn_prefix = '§'
+let g:airline_paste_symbol = 'Þ'
+let g:airline_theme='badwolf'
+let g:airline_powerline_fonts=0
+let g:airline_enable_fugitive=0
+let g:airline_enable_syntastic=0
+
+
 set t_Co=256
 colorscheme molokai
 
@@ -44,7 +52,7 @@ set wrap
 set linebreak
 
 if has("win32") || has("win64")
-   set guifont=Ubuntu\ Mono:h13.5
+   set guifont=Ubuntu\ Mono:h14
    let Tlist_Ctags_Cmd = 'e:\Tools\ctags.exe'
    set directory=$TMP
    if !has("gui_running")
