@@ -20,7 +20,7 @@ let g:airline_linecolumn_prefix = '§'
 let g:airline_paste_symbol = 'Þ'
 let g:airline_readonly_symbol = 'Ʀ'
 let g:airline_theme='badwolf'
-let g:airline_enable_fugitive=0
+let g:airline_enable_branch=0
 let g:airline_enable_syntastic=0
 
 
