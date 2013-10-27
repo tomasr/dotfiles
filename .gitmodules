@@ -42,6 +42,6 @@
 	path = .vim/bundle/vim-ctrlp
 	url = https://github.com/kien/ctrlp.vim.git
 	ignore = dirty
-[submodule ".\\.vim\\bundle\\vim-airline"]
-	path = .\\.vim\\bundle\\vim-airline
+[submodule ".vim/bundle/vim-airline"]
+	path = .vim/bundle/vim-airline
 	url = https://github.com/bling/vim-airline.git
