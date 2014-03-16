@@ -10,3 +10,4 @@ set incsearch " incremental searching on
 set hlsearch " highlight all matches
 set smartcase
 set number ruler " show line numbers
+set backspace=indent,eol,start
