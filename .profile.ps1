@@ -235,6 +235,34 @@ function Resolve-User($user) {
   $objSID.Value
 }
 
+# PE Helpers
+# from http://stackoverflow.com/questions/1591557/how-to-tell-if-a-net-assembly-was-compiled-as-x86-x64-or-any-cpu/16181743#16181743
+function Get-PEKind {
+  Param(
+    [Parameter(Mandatory=$True,ValueFromPipeline=$True)]
+    [System.IO.FileInfo]$assemblies
+  )
+
+  Process {
+    foreach ($assembly in $assemblies) {
+      $peKinds = new-object Reflection.PortableExecutableKinds
+      $imageFileMachine = new-object Reflection.ImageFileMachine
+      try {
+        $a = [Reflection.Assembly]::LoadFile($assembly.Fullname)
+          $a.ManifestModule.GetPEKind([ref]$peKinds, [ref]$imageFileMachine)
+      }
+      catch [System.BadImageFormatException] {
+        $peKinds = [System.Reflection.PortableExecutableKinds]"NotAPortableExecutableImage"
+      }
+
+      $o = New-Object System.Object
+      $o | Add-Member -type NoteProperty -name File -value $assembly
+      $o | Add-Member -type NoteProperty -name PEKind -value $peKinds
+      Write-Output $o
+    }
+  }
+}
+
 # load session helpers
 ."$SCRIPTS\sessions.ps1"
 
