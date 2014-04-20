@@ -67,18 +67,18 @@ function prompt {
    # our theme
    $cdelim = [ConsoleColor]::DarkCyan
    if ( get-adminuser ) {
-      $chost = [ConsoleColor]::Red
+      $chost = [ConsoleColor]::Magenta
    } else {
       $chost = [ConsoleColor]::Green
    }
    $cpref = [ConsoleColor]::Cyan
-   $cloc = [ConsoleColor]::Magenta
+   $cloc = [ConsoleColor]::DarkYellow
 
-   write-host "$([char]0x0A7) " -n -f $cpref
-   write-host ([net.dns]::GetHostName().ToLower()) -n -f $chost
-   write-host ' {' -n -f $cdelim
+   write-host "$($env:COMPUTERNAME.ToLower())" -n -f $chost
+   write-host ' | ' -n -f $cdelim
    write-host (shorten-path (pwd).Path) -n -f $cloc
-   write-host '}' -n -f $cdelim
+   write-host '' -f $cdelim
+   write-host "$([char]0x0A7)" -n -f $cpref
    return ' '
 }
 
@@ -108,16 +108,6 @@ function get-homeip() {
 # do a garbage collection
 function run-gc() {
    [void]([System.GC]::Collect())
-}
-# launch VS dev webserver, from Harry Pierson
-# http://devhawk.net/2008/03/20/WebDevWebServer+PowerShell+Function.aspx
-function webdev($path,$port=8080,$vpath='/') {
-    $spath = "$env:ProgramFiles\Common*\microsoft*\DevServer\9.0\WebDev.WebServer.EXE"
-
-    $spath = resolve-path $spath
-    $rpath = resolve-path $path
-    &$spath "/path:$rpath" "/port:$port" "/vpath:$vpath"
-    "Started WebDev Server for '$path' directory on port $port"
 }
 
 # start gitk without having to go through bash first
