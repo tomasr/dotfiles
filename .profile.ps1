@@ -66,14 +66,13 @@ function get-adminuser() {
 function prompt {
    # our theme
    $cdelim = [ConsoleColor]::DarkCyan
-   if ( get-adminuser ) {
-      $chost = [ConsoleColor]::Magenta
-   } else {
-      $chost = [ConsoleColor]::Green
-   }
+   $chost = [ConsoleColor]::Green
    $cpref = [ConsoleColor]::Cyan
    $cloc = [ConsoleColor]::DarkYellow
 
+   if ( get-adminuser ) {
+     $cpref = [ConsoleColor]::Yellow
+   }
    write-host "$($env:COMPUTERNAME.ToLower())" -n -f $chost
    write-host ' | ' -n -f $cdelim
    write-host (shorten-path (pwd).Path) -n -f $cloc
