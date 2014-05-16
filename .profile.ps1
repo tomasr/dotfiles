@@ -223,6 +223,19 @@ function Resolve-User($user) {
   $objSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier]) 
   $objSID.Value
 }
+function Get-SIDHash([String]$sidPrefix, [String]$user) {
+  $userToHash = switch ( $sidPrefix ) {
+    'S-1-5-82' { $user.ToLower() }
+    default { $user.ToUpper() }
+  }
+  $userBytes = [Text.Encoding]::Unicode.GetBytes($userToHash)
+  $hash = Convert-FromBinHex (Get-Hash $userBytes 'SHA1')
+  $sid = $sidPrefix
+  for ( $i=0; $i -lt 5; $i++ ) {
+    $sid += '-' + [BitConverter]::ToUInt32($hash, $i*4)
+  }
+  $sid
+}
 
 # PE Helpers
 # from http://stackoverflow.com/questions/1591557/how-to-tell-if-a-net-assembly-was-compiled-as-x86-x64-or-any-cpu/16181743#16181743
