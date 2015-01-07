@@ -1,0 +1,13 @@
+ilspy
+msysgit
+conemu
+gvim
+putty
+svn
+winmerge
+fiddler
+f.lux
+sysinternals
+posh-vsvars
+curl
+grepwin

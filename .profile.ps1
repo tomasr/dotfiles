@@ -42,7 +42,9 @@ append-path "$TOOLS\gnu"
 append-path "$TOOLS\git\bin"
 append-path "$($env:WINDIR)\system32\inetsrv"
 
-& "$SCRIPTS\devenv.ps1" 'vs2010'
+#& "$SCRIPTS\devenv.ps1" 'vs2010'
+# using https://github.com/Iristyle/Posh-VsVars
+Set-VsVars
 & "$SCRIPTS\javaenv.ps1"
 
 #
