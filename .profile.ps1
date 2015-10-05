@@ -44,7 +44,9 @@ append-path "$($env:WINDIR)\system32\inetsrv"
 
 #& "$SCRIPTS\devenv.ps1" 'vs2010'
 # using https://github.com/Iristyle/Posh-VsVars
-Set-VsVars
+#Set-VsVars -Version '12.0'
+Import-Module ~/scripts/DevEnvironment
+Set-DevEnvironment 12
 & "$SCRIPTS\javaenv.ps1"
 
 #
@@ -65,6 +67,7 @@ function get-adminuser() {
    return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+if (!$profile.Contains("NuGet_profile")) {
 function prompt {
    # our theme
    $cdelim = [ConsoleColor]::DarkCyan
@@ -81,6 +84,7 @@ function prompt {
    write-host '' -f $cdelim
    write-host "$([char]0x0A7)" -n -f $cpref
    return ' '
+}
 }
 
 ###############################################################################
