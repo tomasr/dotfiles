@@ -46,7 +46,7 @@ append-path "$($env:WINDIR)\system32\inetsrv"
 # using https://github.com/Iristyle/Posh-VsVars
 #Set-VsVars -Version '12.0'
 Import-Module ~/scripts/DevEnvironment
-Set-DevEnvironment 12
+Set-DevEnvironment 15
 & "$SCRIPTS\javaenv.ps1"
 
 #
