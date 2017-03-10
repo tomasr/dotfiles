@@ -44,8 +44,8 @@ function Set-DevEnvironment() {
     param ( [string]$version = $(throw "Need a VS version"))
 
     if ( $version -eq 15 ) {
-        $vsPath = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
-        . Import-Environment $vsPath
+        $vsPath = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2017\*\Common7\Tools\VsDevCmd.bat"
+        . Import-Environment (resolve-path $vsPath)
     } else {
         $vsPath = "Microsoft Visual Studio $version.0\VC\vcvarsall.bat"
         $target = join-path (Get-ProgramFiles32) $vsPath
