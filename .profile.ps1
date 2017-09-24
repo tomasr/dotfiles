@@ -35,11 +35,7 @@ function script:append-path([string] $path ) {
 
 
 append-path "$TOOLS"
-append-path (resolve-path "$TOOLS\svn-*")
-append-path (resolve-path "$TOOLS\nant-*")
 append-path "$TOOLS\vim"
-append-path "$TOOLS\gnu"
-append-path "$TOOLS\git\bin"
 append-path "$($env:WINDIR)\system32\inetsrv"
 
 #& "$SCRIPTS\devenv.ps1" 'vs2010'
@@ -47,7 +43,6 @@ append-path "$($env:WINDIR)\system32\inetsrv"
 #Set-VsVars -Version '12.0'
 Import-Module ~/scripts/DevEnvironment
 Set-DevEnvironment 15
-& "$SCRIPTS\javaenv.ps1"
 
 #
 # Define our prompt. Show '~' instead of $HOME
@@ -68,23 +63,23 @@ function get-adminuser() {
 }
 
 if (!$profile.Contains("NuGet_profile")) {
-function prompt {
-   # our theme
-   $cdelim = [ConsoleColor]::DarkCyan
-   $chost = [ConsoleColor]::Green
-   $cpref = [ConsoleColor]::Cyan
-   $cloc = [ConsoleColor]::DarkYellow
+  function prompt {
+     # our theme
+     $cdelim = [ConsoleColor]::DarkCyan
+     $chost = [ConsoleColor]::Green
+     $cpref = [ConsoleColor]::Cyan
+     $cloc = [ConsoleColor]::DarkYellow
 
-   if ( get-adminuser ) {
-     $cpref = [ConsoleColor]::Yellow
-   }
-   write-host "$($env:COMPUTERNAME.ToLower())" -n -f $chost
-   write-host ' | ' -n -f $cdelim
-   write-host (shorten-path (pwd).Path) -n -f $cloc
-   write-host '' -f $cdelim
-   write-host "$([char]0x0A7)" -n -f $cpref
-   return ' '
-}
+     if ( get-adminuser ) {
+       $cpref = [ConsoleColor]::Yellow
+     }
+     write-host "$($env:COMPUTERNAME.ToLower())" -n -f $chost
+     write-host ' | ' -n -f $cdelim
+     write-host (shorten-path (pwd).Path) -n -f $cloc
+     write-host '' -f $cdelim
+     write-host "$([char]0x0A7)" -n -f $cpref
+     return ' '
+  }
 }
 
 ###############################################################################
@@ -104,30 +99,12 @@ function get-ips() {
       [string]$_
    }
 }
-# get the public IP address of my 
-# home internet connection
-function get-homeip() {
-   $ent = [net.dns]::GetHostEntry("home.winterdom.com")
-   return [string]$ent.AddressList[0]
-}
-# do a garbage collection
-function run-gc() {
-   [void]([System.GC]::Collect())
-}
-
-# start gitk without having to go through bash first
-function gitk {
-   wish "$TOOLS\git\bin\gitk"
-}
 
 # uuidgen.exe replacement
 function uuidgen {
    [guid]::NewGuid().ToString('d')
 }
-# get our own process information
-function get-myprocess {
-   [diagnostics.process]::GetCurrentProcess()
-}
+
 # remove .svn directories
 function remove-svn($path = '.') {
    ls -r -fo $path | ?{ 
@@ -205,19 +182,6 @@ function normalize-array($array, [int]$offset, [int]$len=$array.Length-$offset) 
    $dest
 }
 
-# VHD helper functions for Win7
-function add-vhd($vhdfile) {
-   $path = resolve-path $vhdfile
-   $script = "SELECT VDISK FILE=`"$path`"`r`nATTACH VDISK"
-   $script | diskpart
-}
-function remove-vhd($vhdfile) {
-   $path = resolve-path $vhdfile
-   $script = "SELECT VDISK FILE=`"$path`"`r`nDETACH VDISK"
-   $script | diskpart
-}
-
-
 # SID mapping functions
 function Resolve-SID($stringSid) {
   $objSID = New-Object System.Security.Principal.SecurityIdentifier($stringSid) 
@@ -273,16 +237,3 @@ function Get-PEKind {
 
 # load session helpers
 ."$SCRIPTS\sessions.ps1"
-
-###############################################################################
-# aliases
-###############################################################################
-set-alias fortune ${SCRIPTS}\fortune.ps1
-set-alias ss select-string
-
-###############################################################################
-# Other environment configurations
-###############################################################################
-set-location $HOME
-# OS default location needs to be set as well
-[System.Environment]::CurrentDirectory = $HOME
