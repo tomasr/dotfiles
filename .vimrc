@@ -54,18 +54,17 @@ set wrap
 set linebreak
 
 if has("win32") || has("win64")
-   set guifont=Ubuntu\ Mono:h14
-   let Tlist_Ctags_Cmd = 'e:\Tools\ctags.exe'
+   set guifont=Input:h14
    set directory=$TMP
    if !has("gui_running")
       colorscheme slate
    end
 elseif has("mac")
    set directory=/tmp
-   set guifont=Envy\ Code\ R:h14
+   set guifont=Input:h14
 else
    set directory=/tmp
-   set guifont=Envy\ Code\ R\ 14
+   set guifont=Input\ 14
 endif
 
 set history=50 " keep track of last commands
