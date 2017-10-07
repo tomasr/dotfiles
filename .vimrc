@@ -20,7 +20,7 @@ let g:airline_right_sep='{'
 let g:airline_linecolumn_prefix = '§'
 let g:airline_section_z = airline#section#create(['windowswap', '%3p%% ', 'linenr', ':%3v'])
 " let g:airline_paste_symbol = 'Þ'
-let g:airline_readonly_symbol = 'Ʀ'
+let g:airline_readonly_symbol = 'ф'
 let g:airline_theme='powerlineish'
 " let g:airline_enable_branch=0
 let g:airline_enable_syntastic=0
@@ -74,7 +74,7 @@ set hlsearch " highlight all matches
 set smartcase
 set cursorline
 set selectmode=key
-set showtabline=2 " show always for console version
+"set showtabline=2 " show always for console version
 set laststatus=2 " Always show the statusline
 set tabline=%!MyTabLine()
 set wildmenu " menu on statusbar for command autocomplete
