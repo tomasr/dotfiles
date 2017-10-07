@@ -2,4 +2,4 @@
    name = Tomas Restrepo
    email = tomas@winterdom.com
 [core]
-   autocrlf=false
+   autocrlf=input
