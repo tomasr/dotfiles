@@ -39,15 +39,6 @@ xterm*|rxvt*)
     ;;
 esac
 
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-#if [ -f ~/.bash_aliases ]; then
-#    . ~/.bash_aliases
-#fi
-
 # enable color support of ls and also add handy aliases
 if [ "$TERM" != "dumb" ]; then
     eval "`dircolors -b`"
@@ -64,16 +55,5 @@ if [ -f /etc/bash_completion ]; then
 fi
 
 alias cls=clear
-export TOOLS="$HOME/tools"
-export JAVA_HOME="$TOOLS/jdk1.6.0_11"
-export PATH=$TOOLS/jdk1.6.0_11/bin:$TOOLS/maven/bin:$TOOLS/nant-0.85/bin:$PATH
-export RUBYOPT=rubygems
-export GEM_HOME=$TOOLS/gems_repo
-
 alias grep='grep --color'
 export EDITOR=vim
-
-#
-# run fortune at startup
-#
-fortune
