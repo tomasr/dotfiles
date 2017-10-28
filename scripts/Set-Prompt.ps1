@@ -1,4 +1,3 @@
-
 function local:Get-ShortenedPath([string]$path) {
    $loc = $path.Replace($HOME, '~')
    # remove prefix for UNC paths
@@ -16,19 +15,20 @@ function local:Get-IsAdminUser() {
 
 function prompt {
     # our theme
-    $cdelim = [ConsoleColor]::DarkCyan
-    $chost = [ConsoleColor]::Green
-    $cpref = [ConsoleColor]::Cyan
-    $cloc = [ConsoleColor]::DarkYellow
+    $pbg = [ConsoleColor]::Cyan
+    $pfg = [ConsoleColor]::DarkCyan
 
     if ( Get-IsAdminUser ) {
-      $cpref = [ConsoleColor]::Yellow
+      $pbg = [ConsoleColor]::DarkYellow
+      $pfg = [ConsoleColor]::Yellow
     }
-    write-host "$($env:COMPUTERNAME.ToLower())" -n -f $chost
-    write-host ' | ' -n -f $cdelim
-    write-host (Get-ShortenedPath (pwd).Path) -n -f $cloc
-    write-host '' -f $cdelim
-    write-host "$([char]0x0A7)" -n -f $cpref
+    Write-Host " $($env:COMPUTERNAME.ToLower()) " -NoNewline -BackgroundColor 'Green' -ForegroundColor 'Black'
+    Write-Host "$([char]0xE0B0)" -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'Green'
+    Write-Host " $(Get-ShortenedPath (pwd).Path) " -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'Cyan' 
+    Write-Host "$([char]0xE0B0)" -ForegroundColor 'DarkCyan'
+
+    write-host " $([char]0x0A7) " -NoNewLine -BackgroundColor $pbg -ForegroundColor $pfg
+    write-host "$([char]0xE0B0)" -NoNewLine -ForegroundColor $pbg
     return ' '
 }
 
