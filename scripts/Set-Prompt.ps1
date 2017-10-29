@@ -20,11 +20,11 @@ function prompt {
 
     if ( Get-IsAdminUser ) {
       $pbg = [ConsoleColor]::DarkYellow
-      $pfg = [ConsoleColor]::Yellow
+      $pfg = [ConsoleColor]::White
     }
     Write-Host " $($env:COMPUTERNAME.ToLower()) " -NoNewline -BackgroundColor 'Green' -ForegroundColor 'Black'
     Write-Host "$([char]0xE0B0)" -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'Green'
-    Write-Host " $(Get-ShortenedPath (pwd).Path) " -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'Cyan' 
+    Write-Host " $(Get-ShortenedPath (pwd).Path) " -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'White' 
     Write-Host "$([char]0xE0B0)" -ForegroundColor 'DarkCyan'
 
     write-host " $([char]0x0A7) " -NoNewLine -BackgroundColor $pbg -ForegroundColor $pfg
