@@ -10,7 +10,7 @@
 # and make powershell recognize ~\ as $HOME
 # in paths
 #
-set-variable -name HOME -value (resolve-path $env:Home) -force
+set-variable -name HOME -value (resolve-path $env:Home).Path -force
 (get-psprovider FileSystem).Home = $HOME
 
 #
