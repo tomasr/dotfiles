@@ -15,12 +15,12 @@ function local:Get-IsAdminUser() {
 
 function prompt {
     # our theme
-    $pbg = [ConsoleColor]::Cyan
-    $pfg = [ConsoleColor]::DarkCyan
+    $pbg = [ConsoleColor]::White
+    $pfg = [ConsoleColor]::Black
 
     if ( Get-IsAdminUser ) {
-      $pbg = [ConsoleColor]::DarkYellow
-      $pfg = [ConsoleColor]::White
+      $pbg = [ConsoleColor]::Magenta
+      $pfg = [ConsoleColor]::Black
     }
     Write-Host " $($env:COMPUTERNAME.ToLower()) " -NoNewline -BackgroundColor 'Green' -ForegroundColor 'Black'
     Write-Host "$([char]0xE0B0)" -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'Green'
