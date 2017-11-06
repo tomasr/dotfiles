@@ -8,27 +8,63 @@ function local:Get-ShortenedPath([string]$path) {
 }
 
 function local:Get-IsAdminUser() {
-   $id = [Security.Principal.WindowsIdentity]::GetCurrent()
-   $p = New-Object Security.Principal.WindowsPrincipal($id)
-   return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+   if ( [Environment]::OSVersion.Platform -eq 'Win32NT' ) {
+     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
+     $p = New-Object Security.Principal.WindowsPrincipal($id)
+     return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+   }
+   return $false
+}
+
+function local:Add-Block($block) {
+  Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg (&$block.text)
+}
+
+function local:Add-Separator($leftBlock, $rightBlock) {
+  Write-Host "$([char]0xE0B0)" -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $leftBlock.bg
+}
+
+$defaults = @{
+  bg = [ConsoleColor]::Black;
+  fg = [ConsoleColor]::White;
+}
+
+$historyBlock = @{
+  bg = [ConsoleColor]::DarkGreen;
+  fg = [ConsoleColor]::White;
+  text = { " {0} "-f $MyInvocation.HistoryId }
+}
+
+$hostBlock = @{
+  bg = [ConsoleColor]::Green;
+  fg = [ConsoleColor]::Black;
+  text = { " $([Environment]::MachineName.ToLower()) " }
+}
+
+$pathBlock = @{
+  bg = [ConsoleColor]::DarkCyan;
+  fg = [ConsoleColor]::White;
+  text = { " $(Get-ShortenedPath (pwd).Path) " }
+}
+
+$cmdBlock = @{
+  bg = if ( Get-IsAdminUser ) { [ConsoleColor]::Magenta } else { [ConsoleColor]::White };
+  fg = [ConsoleColor]::Black;
+  text = { " $([char]0x0A7) " }
 }
 
 function prompt {
-    # our theme
-    $pbg = [ConsoleColor]::White
-    $pfg = [ConsoleColor]::Black
+    Add-Block $historyBlock
+    Add-Separator $historyBlock $hostBlock
+    Add-Block $hostBlock
+    Add-Separator $hostBlock $pathBlock
+    Add-Block $pathBlock
+    Add-Separator $pathBlock $defaults
 
-    if ( Get-IsAdminUser ) {
-      $pbg = [ConsoleColor]::Magenta
-      $pfg = [ConsoleColor]::Black
-    }
-    Write-Host " $($env:COMPUTERNAME.ToLower()) " -NoNewline -BackgroundColor 'Green' -ForegroundColor 'Black'
-    Write-Host "$([char]0xE0B0)" -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'Green'
-    Write-Host " $(Get-ShortenedPath (pwd).Path) " -NoNewLine -BackgroundColor 'DarkCyan' -ForegroundColor 'White' 
-    Write-Host "$([char]0xE0B0)" -ForegroundColor 'DarkCyan'
+    Write-Host ""
 
-    write-host " $([char]0x0A7) " -NoNewLine -BackgroundColor $pbg -ForegroundColor $pfg
-    write-host "$([char]0xE0B0)" -NoNewLine -ForegroundColor $pbg
+    Add-Block $cmdBlock
+    Add-Separator $cmdBlock $defaults
     return ' '
 }
 
