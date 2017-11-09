@@ -55,7 +55,7 @@ $promptLines = @(
     @{
       bg   = [ConsoleColor]::DarkCyan;
       fg   = [ConsoleColor]::White;
-      text = { " $(Get-ShortenedPath (pwd).Path) " }
+      text = { " $(Get-ShortenedPath (Get-Location).Path) " }
     }
   ),
   # line 2 => admin indicator, command 
@@ -77,4 +77,3 @@ function prompt {
   }
   return ' '
 }
-
