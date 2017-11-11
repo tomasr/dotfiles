@@ -24,7 +24,17 @@ fi
 case "$TERM" in
 xterm*|rxvt*|screen*|cygwin*)
 #   PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\h\[\033[00m\] {\[\033[36m\]\w\[\033[00m\]} '
-   PS1='${debian_chroot:+($debian_chroot)}\[\033[1;36m\]§ \[\033[1;32m\]\h\[\033[0;36m\] {\[\033[1;36m\]\w\[\033[0;36m\]}\[\033[39m\] '
+# first block:
+#   blue background: \e[44m
+#   white foreground: \e[97m
+# second block:
+#   green background: \e[42m
+#   white foreground: \e[97m
+# third block:
+#   cyan background: \e[106m
+#   black foreground: \e[32m
+
+    PS1='${debian_chroot:+($debian_chroot)}\e[44m\e[97m \h \e[42m\e[34m\e[42m\e[97m \w \e[49m\e[32m\n\e[106m\e[30m § \e[0m\e[96m\e[49m \e[0m'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
