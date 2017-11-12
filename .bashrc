@@ -24,6 +24,7 @@ fi
 case "$TERM" in
 xterm*|rxvt*|screen*|cygwin*)
 #   PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\h\[\033[00m\] {\[\033[36m\]\w\[\033[00m\]} '
+# https://misc.flogisoft.com/bash/tip_colors_and_formatting
 # first block:
 #   blue background: \e[44m
 #   white foreground: \e[97m
