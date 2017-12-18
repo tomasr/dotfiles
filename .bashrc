@@ -35,7 +35,7 @@ xterm*|rxvt*|screen*|cygwin*)
 #   cyan background: \e[106m
 #   black foreground: \e[32m
 
-    PS1='${debian_chroot:+($debian_chroot)}\e[44m\e[97m \h \e[42m\e[34m\e[42m\e[97m \w \e[49m\e[32m\n\e[106m\e[30m § \e[0m\e[96m\e[49m \e[0m'
+    PS1='${debian_chroot:+($debian_chroot)}\[\e[44m\e[97m\] \h \[\e[42m\e[34m\]\[\e[42m\e[97m\] \w \[\e[49m\e[32m\]\n\[\e[106m\e[30m\] § \[\e[0m\e[96m\e[49m\] \[\e[0m\]'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
