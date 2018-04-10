@@ -20,8 +20,14 @@ function local:Write-PromptSegment($block) {
   Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg (&$block.text)
 }
 
+$defaultSeparator = "$([char]0xE0B0)"
+
 function local:Write-PromptSeparator($leftBlock, $rightBlock) {
-  Write-Host "$([char]0xE0B0)" -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $leftBlock.bg
+  $sep = $defaultSeparator
+  if ( $leftBlock.sep ) {
+    $sep = $leftBlock.sep
+  }
+  Write-Host $sep -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $leftBlock.bg
 }
 
 $defaults = @{
@@ -32,7 +38,7 @@ $defaults = @{
 function local:Write-PromptLine($line) {
   for ( $i = 0; $i -lt $line.Length; $i++ ) {
     if ( $i -gt 0 ) {
-      Write-PromptSeparator $line[$i-1] $line[$i]      
+      Write-PromptSeparator $line[$i-1] $line[$i]
     }
     Write-PromptSegment $line[$i]
   }
@@ -51,6 +57,11 @@ $promptLines = @(
       bg   = [ConsoleColor]::Green;
       fg   = [ConsoleColor]::Black;
       text = { " $([Environment]::MachineName.ToLower()) " }
+    },
+    @{
+      bg   = [ConsoleColor]::DarkBlue;
+      fg   = [ConsoleColor]::White;
+      text = { " $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') " };
     },
     @{
       bg   = [ConsoleColor]::DarkCyan;
