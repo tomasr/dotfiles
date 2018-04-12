@@ -72,9 +72,9 @@ $promptLines = @(
   # line 2 => admin indicator, command 
   @(
     @{
-      bg   = if ( Get-IsAdminUser ) { [ConsoleColor]::Magenta } else { [ConsoleColor]::White };
-      fg   = [ConsoleColor]::Black;
-      text = { " $([char]0x0A7) " }
+      bg   = if ( Get-IsAdminUser ) { [ConsoleColor]::DarkMagenta } else { [ConsoleColor]::White };
+      fg   = if ( Get-IsAdminUser ) { [ConsoleColor]::White } else { [ConsoleColor]::Black };
+      text = { " $([char]0x00A7) " }
     }
   )
 )
