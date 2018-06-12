@@ -1,5 +1,5 @@
 dir=~/dotfiles
-files=".bashrc .vimrc .vim .gitconfig"
+files=".bashrc .vimrc .vim .gitconfig .tmux.conf"
 
 cd $dir
 
@@ -10,4 +10,3 @@ for file in $files; do
 done
 
 source ~/.bashrc
-source ~/.vimrc
