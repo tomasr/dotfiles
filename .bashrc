@@ -35,7 +35,25 @@ xterm*|rxvt*|screen*|cygwin*)
 #   cyan background: \e[106m
 #   black foreground: \e[32m
 
-    PS1='${debian_chroot:+($debian_chroot)}\[\e[44m\e[97m\] \h \[\e[42m\e[34m\]\[\e[42m\e[97m\] \w \[\e[49m\e[32m\]\n\[\e[106m\e[30m\] § \[\e[0m\e[96m\e[49m\] \[\e[0m\]'
+    BGDARKBLUE=$(printf '\e[44m')
+    FGDARKBLUE=$(printf '\e[34m')
+    BGWHITE=$(printf '\e[107m')
+    FGWHITE=$(printf '\e[97m')
+    FGGREEN=$(printf '\e[92m')
+    BGGREEN=$(printf '\e[102m')
+    FGDGREEN=$(printf '\e[32m')
+    BGDGREEN=$(printf '\e[42m')
+    BGBLACK=$(printf '\e[40m')
+    FGBLACK=$(printf '\e[30m')
+    BGLCYAN=$(printf '\e[106m')
+    FGLCYAN=$(printf '\e[96m')
+    BGTEAL=$(printf '\e[46m')
+    FGTEAL=$(printf '\e[36m')
+    BGMAGENTA=$(printf '\e[45m')
+    FGMAGENTA=$(printf '\e[35m')
+    CRESET=$(printf '\e[0m')
+
+    PS1='${BGGREEN}${FGBLACK} \h ${BGDARKBLUE}${FGGREEN}${BGDARKBLUE}${FGWHITE} \t ${BGTEAL}${FGDARKBLUE}${BGTEAL}${FGWHITE} \w ${BGBLACK}${FGTEAL}${CRESET}\n${BGWHITE}${FGBLACK} § ${BGBLACK}${FGWHITE} ${CRESET}'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
