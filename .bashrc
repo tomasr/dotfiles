@@ -53,7 +53,7 @@ xterm*|rxvt*|screen*|cygwin*)
     FGMAGENTA=$(printf '\e[35m')
     CRESET=$(printf '\e[0m')
 
-    PS1='${BGMAGENTA}${FGWHITE} \h ${BGDARKBLUE}${FGMAGENTA}${BGDARKBLUE}${FGWHITE} \t ${BGTEAL}${FGDARKBLUE}${BGTEAL}${FGWHITE} \w ${BGBLACK}${FGTEAL}${CRESET}\n${BGWHITE}${FGBLACK} § ${BGBLACK}${FGWHITE} ${CRESET}'
+    PS1='\[$BGMAGENTA\]\[$FGWHITE\] \h \[$BGDARKBLUE\]\[$FGMAGENTA\]\[$BGDARKBLUE\]\[$FGWHITE\] \t \[$BGTEAL\]\[$FGDARKBLUE\]\[$BGTEAL\]\[$FGWHITE\] \w \[$BGBLACK\]\[$FGTEAL\]\[$CRESET\]\n\[$BGWHITE\]\[$FGBLACK\] § \[$BGBLACK\]\[$FGWHITE\] \[$CRESET\]'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
