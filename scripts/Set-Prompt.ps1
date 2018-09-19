@@ -16,8 +16,8 @@ function local:Get-IsAdminUser() {
   return $false
 }
 
-function local:Write-PromptSegment($block) {
-  Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg (&$block.text)
+function local:Write-PromptSegment($block, $text) {
+  Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg $text
 }
 
 $defaultSeparator = "$([char]0xE0B0)"
@@ -36,18 +36,38 @@ $defaults = @{
 }
 
 function local:Write-PromptLine($line) {
+  $previous = $null
   for ( $i = 0; $i -lt $line.Length; $i++ ) {
-    if ( $i -gt 0 ) {
-      Write-PromptSeparator $line[$i-1] $line[$i]
+    $text = &$line[$i].text
+    if ( $text.Trim().Length -gt 0 ) {
+      if ( $previous -ne $null ) {
+        Write-PromptSeparator $previous $line[$i]
+      }
+      Write-PromptSegment $line[$i] $text
+      $previous = $line[$i]
     }
-    Write-PromptSegment $line[$i]
   }
-  Write-PromptSeparator $line[-1] $defaults
+  Write-PromptSeparator $previous $defaults
 }
 
-$promptLines = @(
-  # line 1 => history | machine | path
-  @(
+function local:Get-KubeContext {
+  $kubeconfig = (Get-Content ~/.kube/config -ErrorAction SilentlyContinue | Select-String "^current-context:\s*(.+)")
+  if ( $kubeconfig -ne $null ) {
+    return $kubeconfig.Matches.Groups[1].Value
+  }
+  return $null
+}
+
+function Add-Conditional($line, $result) {
+  if ( $result ) {
+    return $line + @($result)
+  }
+  return $line
+}
+
+function Get-FirstLine() {
+  # line 1 => history | machine | datetime | path
+  $line = @(
     @{
       bg   = [ConsoleColor]::DarkGreen;
       fg   = [ConsoleColor]::White;
@@ -67,16 +87,30 @@ $promptLines = @(
       bg   = [ConsoleColor]::DarkCyan;
       fg   = [ConsoleColor]::White;
       text = { " $(Get-ShortenedPath (Get-Location).Path) " }
+    },
+    @{
+      bg   = [ConsoleColor]::DarkGray;
+      fg   = [ConsoleColor]::White;
+      text = { " $(Get-KubeContext) " }
     }
-  ),
-  # line 2 => admin indicator, command 
-  @(
+  )
+  return $line
+}
+
+function Get-SecondLine() {
+  # line 2 => admin indicator, command
+  return @(
     @{
       bg   = if ( Get-IsAdminUser ) { [ConsoleColor]::DarkMagenta } else { [ConsoleColor]::White };
       fg   = if ( Get-IsAdminUser ) { [ConsoleColor]::White } else { [ConsoleColor]::Black };
       text = { " $([char]0x00A7) " }
     }
   )
+}
+
+$promptLines = @(
+  @(Get-FirstLine),
+  @(Get-SecondLine)
 )
 
 function prompt {
