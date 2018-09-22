@@ -53,16 +53,9 @@ function local:Write-PromptLine($line) {
 function local:Get-KubeContext {
   $kubeconfig = (Get-Content ~/.kube/config -ErrorAction SilentlyContinue | Select-String "^current-context:\s*(.+)")
   if ( $kubeconfig -ne $null ) {
-    return $kubeconfig.Matches.Groups[1].Value
+    return "$([char]0x416) $($kubeconfig.Matches.Groups[1].Value)"
   }
   return $null
-}
-
-function Add-Conditional($line, $result) {
-  if ( $result ) {
-    return $line + @($result)
-  }
-  return $line
 }
 
 function Get-FirstLine() {
@@ -89,7 +82,7 @@ function Get-FirstLine() {
       text = { " $(Get-ShortenedPath (Get-Location).Path) " }
     },
     @{
-      bg   = [ConsoleColor]::DarkGray;
+      bg   = [ConsoleColor]::DarkGreen;
       fg   = [ConsoleColor]::White;
       text = { " $(Get-KubeContext) " }
     }
