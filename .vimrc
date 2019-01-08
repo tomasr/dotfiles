@@ -49,7 +49,7 @@ set wrap
 set linebreak
 
 if has("win32") || has("win64")
-   set guifont=Input:h14
+   set guifont=Fira\ Code:h14
    set directory=$TMP
    if !has("gui_running")
       colorscheme slate
