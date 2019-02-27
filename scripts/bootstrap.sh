@@ -9,4 +9,6 @@ for file in $files; do
     ln -s $dir/$file ~/$file
 done
 
-source ~/.bashrc
+mkdir -p ~/.config/powershell
+ln -s $dir/config/powershell/profile.ps1 ~/.config/powershell/profile.ps1
+
