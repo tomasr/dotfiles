@@ -39,7 +39,7 @@ append-path "$TOOLS\vim"
 append-path "$($env:WINDIR)\system32\inetsrv"
 
 Import-Module ~/scripts/DevEnvironment
-Set-DevEnvironment 15
+Set-DevEnvironment 16
 
 . ~/scripts/Set-Prompt.ps1
 
