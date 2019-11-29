@@ -16,7 +16,7 @@
       "hidden": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Solarized Dark"
+      "colorScheme": "Murena"
     },
     {
       // Make changes here to the cmd.exe profile
@@ -25,16 +25,27 @@
       "commandline": "cmd.exe",
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Solarized Dark",
+      "colorScheme": "Murena",
       "hidden": false
     },
+    // laptop profile
     {
       "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
       "hidden": false,
       "name": "Ubuntu",
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Solarized Dark",
+      "colorScheme": "Murena",
+      "source": "Windows.Terminal.Wsl"
+    },
+    // desktop profile
+    {
+      "guid": "{6e9fa4d2-a4aa-562d-b1fa-0789dc1f83d7}",
+      "hidden": false,
+      "name": "Ubuntu",
+      "fontFace": "Cascadia Mono PL",
+      "fontSize": 13,
+      "colorScheme": "Murena",
       "source": "Windows.Terminal.Wsl"
     },
     {
@@ -42,7 +53,7 @@
       "hidden": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Solarized Dark",
+      "colorScheme": "Murena",
       "name": "Azure Cloud Shell",
       "source": "Windows.Terminal.Azure"
     }
@@ -51,25 +62,27 @@
   // Add custom color schemes to this array
   "schemes": [
     {
-      "background": "#002B36",
-      "black": "#073642",
-      "blue": "#268BD2",
-      "brightBlack": "#002B36",
-      "brightBlue": "#839496",
-      "brightCyan": "#93A1A1",
-      "brightGreen": "#586E75",
-      "brightPurple": "#6C71C4",
-      "brightRed": "#CB4B16",
-      "brightWhite": "#FDF6E3",
-      "brightYellow": "#657B83",
-      "cyan": "#2AA198",
-      "foreground": "#839496",
-      "green": "#859900",
-      "name": "Solarized Dark",
-      "purple": "#D33682",
-      "red": "#DC322F",
-      "white": "#EEE8D5",
-      "yellow": "#B58900"
+      "name": "Murena",
+
+      "background": "#000000",
+      "foreground": "#c0c0c0",
+
+      "black": "#000000",
+      "blue": "#004164",
+      "green": "#008000",
+      "cyan": "#008080",
+      "red": "#800000",
+      "purple": "#800080",
+      "yellow": "#808000",
+      "brightBlack": "#c0c0c0",
+      "white": "#808080",
+      "brightBlue": "#0000ff",
+      "brightGreen": "#87c576",
+      "brightCyan": "#00ffff",
+      "brightRed": "#ff4b00",
+      "brightPurple": "#e68cd7",
+      "brightYellow": "#ffff00",
+      "brightWhite": "#ffffff"
     }
   ],
 
