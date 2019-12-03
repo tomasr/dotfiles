@@ -5,9 +5,19 @@
 {
   "$schema": "https://aka.ms/terminal-profiles-schema",
 
-  "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+  "defaultProfile": "{1ba0ecbe-ee5f-4f20-80fc-c7f3376445ca}",
 
   "profiles": [
+    {
+      "guid": "{1ba0ecbe-ee5f-4f20-80fc-c7f3376445ca}",
+      "name": "PowerShell Core",
+      "commandline": "%USERPROFILE%\\.dotnet\\tools\\pwsh.exe",
+      "startingDirectory": "%USERPROFILE%",
+      "hidden": false,
+      "fontFace": "Cascadia Mono PL",
+      "fontSize": 13,
+      "colorScheme": "Murena"
+    },
     {
       // Make changes here to the powershell.exe profile
       "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
