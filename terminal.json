@@ -16,7 +16,7 @@
       "hidden": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Murena"
+      "colorScheme": "Gruvbox Dark"
     },
     {
       // Make changes here to the powershell.exe profile
@@ -26,7 +26,7 @@
       "hidden": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Murena"
+      "colorScheme": "Gruvbox Dark"
     },
     {
       // Make changes here to the cmd.exe profile
@@ -35,8 +35,8 @@
       "commandline": "cmd.exe",
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Murena",
-      "hidden": false
+      "hidden": false,
+      "colorScheme": "Gruvbox Dark"
     },
     // laptop profile
     {
@@ -45,8 +45,8 @@
       "name": "Ubuntu",
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Murena",
-      "source": "Windows.Terminal.Wsl"
+      "source": "Windows.Terminal.Wsl",
+      "colorScheme": "Gruvbox Dark"
     },
     // desktop profile
     {
@@ -55,17 +55,17 @@
       "name": "Ubuntu",
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Murena",
-      "source": "Windows.Terminal.Wsl"
+      "source": "Windows.Terminal.Wsl",
+      "colorScheme": "Gruvbox Dark"
     },
     {
       "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
       "hidden": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
-      "colorScheme": "Murena",
       "name": "Azure Cloud Shell",
-      "source": "Windows.Terminal.Azure"
+      "source": "Windows.Terminal.Azure",
+      "colorScheme": "Gruvbox Dark"
     }
   ],
 
@@ -93,6 +93,112 @@
       "brightPurple": "#e68cd7",
       "brightYellow": "#ffff00",
       "brightWhite": "#ffffff"
+    },
+    {
+      "name": "Belafonte Day",
+      "foreground": "#45373C",
+      "background": "#D5CCBA",
+      "black": "#20111B",
+      "blue": "#426A79",
+      "green": "#858162",
+      "cyan": "#989A9C",
+      "red": "#BE100E",
+      "purple": "#97522C",
+      "yellow": "#EAA549",
+      "white": "#968C83",
+      "brightBlack": "#5E5252",
+      "brightBlue": "#426A79",
+      "brightGreen": "#858162",
+      "brightCyan": "#989A9C",
+      "brightRed": "#BE100E",
+      "brightPurple": "#97522C",
+      "brightYellow": "#EAA549",
+      "brightWhite": "#D5CCBA"
+    },
+    {
+      "name": "Earthsong",
+      "foreground": "#E5C6A8",
+      "background": "#282420",
+      "black": "#111417",
+      "blue": "#1397B9",
+      "green": "#84C44B",
+      "cyan": "#4F9452",
+      "red": "#C84134",
+      "purple": "#D0623C",
+      "yellow": "#F4AE2E",
+      "white": "#E5C5A9",
+      "brightBlack": "#665E54",
+      "brightBlue": "#5ED9FF",
+      "brightGreen": "#97E035",
+      "brightCyan": "#83EF88",
+      "brightRed": "#FF6459",
+      "brightPurple": "#FF9168",
+      "brightYellow": "#DFD561",
+      "brightWhite": "#F6F6EC"
+    },
+    {
+      "name": "Ciapre",
+      "foreground": "#ADA37A",
+      "background": "#181C27",
+      "black": "#181818",
+      "blue": "#566D8C",
+      "green": "#48513B",
+      "cyan": "#5B4F4A",
+      "red": "#800009",
+      "purple": "#724C7C",
+      "yellow": "#CC8A3E",
+      "white": "#ADA37E",
+      "brightBlack": "#555555",
+      "brightBlue": "#2F97C6",
+      "brightGreen": "#A6A65D",
+      "brightCyan": "#F3DAB1",
+      "brightRed": "#AB3834",
+      "brightPurple": "#D33060",
+      "brightYellow": "#DCDE7B",
+      "brightWhite": "#F3F3F3"
+    },
+    {
+      // SELECTED!!!
+      "name": "Gruvbox Dark",
+      "foreground": "#E5D3A2",
+      "background": "#1D1D1D",
+      "black": "#1D1D1D",
+      "blue": "#377274",
+      "green": "#868715",
+      "cyan": "#568D57",
+      "red": "#BE0E17",
+      "purple": "#9F4B73",
+      "yellow": "#CC871A",
+      "white": "#978771",
+      "brightBlack": "#7F7060",
+      "brightBlue": "#709585",
+      "brightGreen": "#A9B01D",
+      "brightCyan": "#7DB568",
+      "brightRed": "#F63028",
+      "brightPurple": "#C76F89",
+      "brightYellow": "#F7B024",
+      "brightWhite": "#E5D3A2"
+    },
+    {
+      "name": "Ryuuko",
+      "foreground": "#ECECEC",
+      "background": "#2B3840",
+      "black": "#2B3840",
+      "blue": "#698D95",
+      "green": "#658F7D",
+      "cyan": "#88B2AB",
+      "red": "#865E5A",
+      "purple": "#B08A73",
+      "yellow": "#B1A88F",
+      "white": "#ECECEC",
+      "brightBlack": "#5D6F79",
+      "brightBlue": "#698D95",
+      "brightGreen": "#658F7D",
+      "brightCyan": "#88B2AB",
+      "brightRed": "#865E5A",
+      "brightPurple": "#B08A73",
+      "brightYellow": "#B1A88F",
+      "brightWhite": "#ECECEC"
     }
   ],
 
