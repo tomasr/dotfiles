@@ -14,6 +14,7 @@
       "commandline": "%USERPROFILE%\\.dotnet\\tools\\pwsh.exe",
       "startingDirectory": "%USERPROFILE%",
       "hidden": false,
+      "closeOnExit": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
       "colorScheme": "Gruvbox Dark"
