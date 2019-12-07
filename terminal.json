@@ -6,7 +6,8 @@
   "$schema": "https://aka.ms/terminal-profiles-schema",
 
   "defaultProfile": "{1ba0ecbe-ee5f-4f20-80fc-c7f3376445ca}",
-
+  "requestedTheme": "dark",
+  
   "profiles": [
     {
       "guid": "{1ba0ecbe-ee5f-4f20-80fc-c7f3376445ca}",
