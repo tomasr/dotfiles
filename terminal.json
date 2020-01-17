@@ -5,71 +5,59 @@
 {
   "$schema": "https://aka.ms/terminal-profiles-schema",
 
-  "defaultProfile": "{1ba0ecbe-ee5f-4f20-80fc-c7f3376445ca}",
+  "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
   "requestedTheme": "dark",
   
-  "profiles": [
-    {
-      "guid": "{1ba0ecbe-ee5f-4f20-80fc-c7f3376445ca}",
-      "name": "PowerShell Core",
-      "commandline": "%USERPROFILE%\\.dotnet\\tools\\pwsh.exe",
-      "startingDirectory": "%USERPROFILE%",
-      "hidden": false,
-      "closeOnExit": false,
+  "profiles": {
+    "defaults": {
+      "useAcrylic": false,
       "fontFace": "Cascadia Mono PL",
       "fontSize": 13,
       "colorScheme": "Gruvbox Dark"
     },
-    {
-      // Make changes here to the powershell.exe profile
-      "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-      "name": "Windows PowerShell",
-      "commandline": "powershell.exe",
-      "hidden": false,
-      "fontFace": "Cascadia Mono PL",
-      "fontSize": 13,
-      "colorScheme": "Gruvbox Dark"
-    },
-    {
-      // Make changes here to the cmd.exe profile
-      "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-      "name": "cmd",
-      "commandline": "cmd.exe",
-      "fontFace": "Cascadia Mono PL",
-      "fontSize": 13,
-      "hidden": false,
-      "colorScheme": "Gruvbox Dark"
-    },
-    // laptop profile
-    {
-      "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
-      "hidden": false,
-      "name": "Ubuntu",
-      "fontFace": "Cascadia Mono PL",
-      "fontSize": 13,
-      "source": "Windows.Terminal.Wsl",
-      "colorScheme": "Gruvbox Dark"
-    },
-    // desktop profile
-    {
-      "guid": "{6e9fa4d2-a4aa-562d-b1fa-0789dc1f83d7}",
-      "hidden": false,
-      "name": "Ubuntu",
-      "fontFace": "Cascadia Mono PL",
-      "fontSize": 13,
-      "source": "Windows.Terminal.Wsl",
-      "colorScheme": "Gruvbox Dark"
-    },
-    {
-      "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
-      "hidden": false,
-      "fontFace": "Cascadia Mono PL",
-      "fontSize": 13,
-      "name": "Azure Cloud Shell",
-      "source": "Windows.Terminal.Azure",
-      "colorScheme": "Gruvbox Dark"
-    }
-  ],
+    "list": [
+      {
+        "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+        "hidden": false,
+        "name": "PowerShell Core",
+        "source": "Windows.Terminal.PowershellCore"
+      },
+      {
+        // Make changes here to the powershell.exe profile
+        "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+        "name": "Windows PowerShell",
+        "commandline": "powershell.exe",
+        "hidden": false
+      },
+      {
+        // Make changes here to the cmd.exe profile
+        "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+        "name": "cmd",
+        "commandline": "cmd.exe",
+        "hidden": true
+      },
+      // laptop profile
+      {
+        "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+        "hidden": false,
+        "name": "Ubuntu",
+        "source": "Windows.Terminal.Wsl"
+      },
+      // desktop profile
+      {
+        "guid": "{6e9fa4d2-a4aa-562d-b1fa-0789dc1f83d7}",
+        "hidden": false,
+        "name": "Ubuntu",
+        "source": "Windows.Terminal.Wsl"
+      },
+        {
+            "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+            "hidden": false,
+            "name": "Azure Cloud Shell",
+            "source": "Windows.Terminal.Azure"
+        }
+    ]
+  },
 
   // Add custom color schemes to this array
   "schemes": [
