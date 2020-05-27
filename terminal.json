@@ -20,7 +20,8 @@
         "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
         "hidden": false,
         "name": "PowerShell Core",
-        "source": "Windows.Terminal.PowershellCore"
+        "source": "Windows.Terminal.PowershellCore",
+        "commandline": "pwsh.exe -NoLogo"
       },
       {
         // Make changes here to the powershell.exe profile
