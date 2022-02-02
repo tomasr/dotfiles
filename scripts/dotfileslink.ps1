@@ -10,12 +10,14 @@ ls "$h\dotfiles" | %{
       if ( test-path "$h\$($_.Name)" ) {
          if ( $_.PSIsContainer ) {
             # try to unlink first
-            linkd.exe "$h\$($_.Name)" /d
+            #linkd.exe "$h\$($_.Name)" /d
+            (Get-Item "$h\$($_.Name)").Delete()
          }
          rm -r -force "$h\$($_.Name)"
       }
       if ( $_.PSIsContainer ) {
-         linkd.exe "$h\$($_.Name)" $_.FullName
+         #linkd.exe "$h\$($_.Name)" $_.FullName
+         New-Item -ItemType SymbolicLink -Path "$h\$($_.Name)" -Target $_.FullName
       } else {
          fsutil hardlink create "$h\$($_.Name)" $_.FullName
       }
