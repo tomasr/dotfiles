@@ -51,6 +51,9 @@ function Set-DevEnvironment() {
     } elseif ( $version -eq 16 ) {
         $vsPath = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2019\*\Common7\Tools\VsDevCmd.bat"
         . Import-Environment (resolve-path $vsPath)
+    } elseif ( $version -eq 17 ) {
+        $vsPath = Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\*\Common7\Tools\VsDevCmd.bat"
+        . Import-Environment (resolve-path $vsPath)
     } else {
         $vsPath = "Microsoft Visual Studio $version.0\VC\vcvarsall.bat"
         $target = join-path (Get-ProgramFiles32) $vsPath
