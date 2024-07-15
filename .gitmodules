@@ -10,10 +10,6 @@
 	path = .vim/bundle/nerdcommenter
 	url = https://github.com/scrooloose/nerdcommenter.git
 	ignore = dirty
-[submodule ".vim/bundle/vim-ku"]
-	path = .vim/bundle/vim-ku
-	url = https://github.com/emonkak/vim-ku.git
-	ignore = dirty
 [submodule ".vim/bundle/vim-rails"]
 	path = .vim/bundle/vim-rails
 	url = https://github.com/tpope/vim-rails.git
