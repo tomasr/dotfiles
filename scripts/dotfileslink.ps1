@@ -23,5 +23,10 @@ ls "$h\dotfiles" | %{
       }
    }
 }
+
+# nvim configuration
+[void](New-Item -Type Directory -ErrorAction SilentlyContinue $h\.config)
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\AppData\Local\nvim" -Target $h\dotfiles\nvim
+
 Copy-Item -force (Resolve-Path "$h\dotfiles\terminal.json") (Resolve-Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json")
 
