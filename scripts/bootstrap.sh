@@ -11,4 +11,5 @@ done
 
 mkdir -p ~/.config/powershell
 ln -s $dir/config/powershell/profile.ps1 ~/.config/powershell/profile.ps1
+ln -s $dir/nvim ~/.config/nvim
 
