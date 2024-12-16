@@ -7,11 +7,20 @@ function Get-ProgramFiles32
   }
 }
 
+function Get-Arch()
+{
+  if ( [IntPtr]::Size -eq 8 )
+  {
+    return "-arch=amd64"
+  }
+  return "-arch=x86"
+}
+
 # This method will execute a batch file and then put the resulting 
 # environment into the current context 
 function Import-Environment() {
     param ( $file = $(throw "Need a CMD/BAT file to execute"),
-            $args = "") 
+            $argv = "") 
 
 	if ([System.IO.File]::Exists($file)) {
 		$tempFile = [IO.Path]::GetTempFileName()
@@ -19,7 +28,7 @@ function Import-Environment() {
 		# Store the output of cmd.exe.  We also ask cmd.exe to output
 		# the environment table after the batch file completes
 
-		cmd /c " `"$file`" $args && set > `"$tempFile`" "
+		cmd /c " `"$file`" $argv && set > `"$tempFile`" "
 
 		## Go through the environment variables in the temp file.
 		## For each of them, set the variable in our local environment.
@@ -45,6 +54,8 @@ function Import-Environment() {
 function Set-DevEnvironment() {
     param ( [string]$version = $(throw "Need a VS version"))
 
+    $arch = Get-Arch
+
     if ( $version -eq 15 ) {
         $vsPath = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2017\*\Common7\Tools\VsDevCmd.bat"
         . Import-Environment (resolve-path $vsPath)
@@ -53,7 +64,7 @@ function Set-DevEnvironment() {
         . Import-Environment (resolve-path $vsPath)
     } elseif ( $version -eq 17 ) {
         $vsPath = Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\*\Common7\Tools\VsDevCmd.bat"
-        . Import-Environment (resolve-path $vsPath)
+        . Import-Environment -file (resolve-path $vsPath) -argv $arch
     } else {
         $vsPath = "Microsoft Visual Studio $version.0\VC\vcvarsall.bat"
         $target = join-path (Get-ProgramFiles32) $vsPath

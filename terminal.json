@@ -53,6 +53,14 @@
         "source": "Windows.Terminal.Wsl",
         "colorScheme": "Earthsong"
       },
+      // newer wsl 
+      {
+        "guid": "{a5a803a5-90d2-4673-9d61-6e24dda8a922}",
+        "hidden": false,
+        "name": "Ubuntu-24.04",
+        "source": "Windows.Terminal.Wsl",
+        "colorScheme": "Earthsong"
+      },
       {
         "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
         "hidden": false,

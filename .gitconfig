@@ -3,3 +3,9 @@
    email = tomas@winterdom.com
 [core]
    autocrlf=input
+   packedGitLimit = 512m
+  packedGitWindowSize = 512m
+[pack]
+  deltaCacheSize = 2047m
+  packSizeLimit = 2047m
+  windowMemory = 2047m
