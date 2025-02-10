@@ -19,7 +19,7 @@ set-variable -name HOME -value (resolve-path $env:Home).Path -force
 $HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
 $TOOLS = "$HOME_ROOT\tools"
 $SCRIPTS = "$HOME\scripts"
-$env:EDITOR = 'gvim.exe'
+$env:EDITOR = 'nvim.exe'
 
 #
 # set path to include my usual directories
