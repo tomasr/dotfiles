@@ -1,0 +1,14 @@
+GNU.MidnightCommander
+icsharpcode.ILSpy
+Neovim.Neovim
+WinMerge.WinMerge
+Notepad++.Notepad++
+Cyanfish.NAPS2
+MHNexus.HxD
+JGraph.Draw
+Microsoft.AzureCLI
+WiresharkFoundation.Wireshark
+Telerik.Fiddler.Classic
+Microsoft.Azure.StorageExplorer
+Microsoft.VisualStudioCode
+Microsoft.WindowsTerminal

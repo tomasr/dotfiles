@@ -19,7 +19,7 @@ set-variable -name HOME -value (resolve-path $env:Home).Path -force
 $HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
 $TOOLS = "$HOME_ROOT\tools"
 $SCRIPTS = "$HOME\scripts"
-$env:EDITOR = 'nvim.exe'
+$env:EDITOR = 'nvim'
 
 #
 # set path to include my usual directories
@@ -35,8 +35,6 @@ function script:Append-Path([string] $path ) {
 
 
 append-path "$TOOLS"
-append-path "$TOOLS\vim"
-append-path "$($env:WINDIR)\system32\inetsrv"
 
 Import-Module ~/scripts/DevEnvironment
 Set-DevEnvironment 17
@@ -44,3 +42,7 @@ Set-DevEnvironment 17
 . ~/scripts/Set-Prompt.ps1
 
 Import-Module ~/scripts/ProfileUtils.psm1 -Scope Global
+
+if ($IsWindows) {
+  . ~/scripts/Set-WindowsProfile.ps1
+}
