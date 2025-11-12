@@ -20,6 +20,7 @@ $HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
 $TOOLS = "$HOME_ROOT\tools"
 $SCRIPTS = "$HOME\scripts"
 $env:EDITOR = 'nvim'
+$env:TERM = 'xterm-256color'
 
 #
 # set path to include my usual directories
