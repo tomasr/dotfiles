@@ -20,7 +20,6 @@ $HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
 $TOOLS = "$HOME_ROOT\tools"
 $SCRIPTS = "$HOME\scripts"
 $env:EDITOR = 'nvim'
-$env:TERM = 'xterm-256color'
 
 #
 # set path to include my usual directories
@@ -46,4 +45,5 @@ Import-Module ~/scripts/ProfileUtils.psm1 -Scope Global
 
 if ($IsWindows) {
   . ~/scripts/Set-WindowsProfile.ps1
+  $env:TERM = 'xterm-256color'
 }
