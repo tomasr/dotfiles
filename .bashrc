@@ -85,4 +85,4 @@ fi
 
 alias cls=clear
 alias grep='grep --color'
-export EDITOR=vim
+export EDITOR=nvim
