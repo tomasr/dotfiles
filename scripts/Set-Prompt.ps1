@@ -58,6 +58,14 @@ function local:Get-KubeContext {
   return $null
 }
 
+function local:Get-GitBranch {
+  $branch = git rev-parse --abbrev-ref HEAD 2>&1
+  if ( $LASTEXITCODE -eq 0 ) {
+    return " $([char]0xE0A0) $branch "
+  }
+  return $null
+}
+
 function Get-FirstLine() {
   # line 1 => history | machine | datetime | path
   $line = @(
@@ -80,6 +88,11 @@ function Get-FirstLine() {
       bg   = [ConsoleColor]::DarkCyan;
       fg   = [ConsoleColor]::White;
       text = { " $(Get-ShortenedPath (Get-Location).Path) " }
+    },
+    @{
+      bg   = [ConsoleColor]::DarkMagenta;
+      fg   = [ConsoleColor]::White;
+      text = { "$(Get-GitBranch)" }
     },
     @{
       bg   = [ConsoleColor]::DarkGreen;
