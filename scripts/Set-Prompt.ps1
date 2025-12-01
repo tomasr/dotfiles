@@ -22,12 +22,12 @@ function local:Write-PromptSegment($block, $text) {
 
 $defaultSeparator = "$([char]0xE0B0)"
 
-function local:Write-PromptSeparator($leftBlock, $rightBlock) {
-  $sep = $defaultSeparator
-  if ( $leftBlock.sep ) {
-    $sep = $leftBlock.sep
+function local:Write-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $false) {
+  $background = (Get-Host).UI.RawUI.BackgroundColor
+  Write-Host $defaultSeparator -NoNewLine -ForegroundColor $leftBlock.bg
+  if ( !$lastInLine ) {
+    Write-Host $defaultSeparator -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $background
   }
-  Write-Host $sep -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $leftBlock.bg
 }
 
 $defaults = @{
@@ -47,7 +47,7 @@ function local:Write-PromptLine($line) {
       $previous = $line[$i]
     }
   }
-  Write-PromptSeparator $previous $defaults
+  Write-PromptSeparator $previous $defaults $true
 }
 
 function local:Get-KubeContext {
