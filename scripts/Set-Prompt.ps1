@@ -61,7 +61,8 @@ function local:Get-KubeContext {
 function local:Get-GitBranch {
   $branch = git rev-parse --abbrev-ref HEAD 2>&1
   if ( $LASTEXITCODE -eq 0 ) {
-    return " $([char]0xE0A0) $branch "
+    $dirty = if ((git status --untracked-files=no --porcelain).length -gt 0) { "* " } else { '' }
+    return " $([char]0xE0A0) $branch $dirty"
   }
   return $null
 }
@@ -77,17 +78,17 @@ function Get-FirstLine() {
     @{
       bg   = [ConsoleColor]::Green;
       fg   = [ConsoleColor]::Black;
-      text = { " $([Environment]::MachineName.ToLower()) " }
+      text = { " $([char]0x211E) $([Environment]::MachineName.ToLower()) " }
+    },
+    @{
+      bg   = [ConsoleColor]::DarkCyan;
+      fg   = [ConsoleColor]::Black;
+      text = { " $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') " };
     },
     @{
       bg   = [ConsoleColor]::DarkBlue;
       fg   = [ConsoleColor]::White;
-      text = { " $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') " };
-    },
-    @{
-      bg   = [ConsoleColor]::DarkCyan;
-      fg   = [ConsoleColor]::White;
-      text = { " $(Get-ShortenedPath (Get-Location).Path) " }
+      text = { " $([char]0x2713) $(Get-ShortenedPath (Get-Location).Path) " }
     },
     @{
       bg   = [ConsoleColor]::DarkMagenta;
@@ -95,7 +96,7 @@ function Get-FirstLine() {
       text = { "$(Get-GitBranch)" }
     },
     @{
-      bg   = [ConsoleColor]::DarkGreen;
+      bg   = [ConsoleColor]::DarkYellow;
       fg   = [ConsoleColor]::White;
       text = { " $(Get-KubeContext) " }
     }
