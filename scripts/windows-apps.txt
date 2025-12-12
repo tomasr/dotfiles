@@ -12,3 +12,7 @@ Telerik.Fiddler.Classic
 Microsoft.Azure.StorageExplorer
 Microsoft.VisualStudioCode
 Microsoft.WindowsTerminal
+dandavison.delta
+mitmproxy.mitmproxy
+bruno.bruno
+gitextensions
