@@ -20,6 +20,48 @@ if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
+
+# Color definitions
+BGBLACK=$(printf '\e[40m')
+BGWHITE=$(printf '\e[107m')
+BGDGREEN=$(printf '\e[42m')
+BGGREEN=$(printf '\e[102m')
+BGLCYAN=$(printf '\e[106m')
+BGTEAL=$(printf '\e[46m')
+BGDARKBLUE=$(printf '\e[44m')
+BGMAGENTA=$(printf '\e[45m')
+
+FGBLACK=$(printf '\e[30m')
+FGWHITE=$(printf '\e[97m')
+FGDGREEN=$(printf '\e[32m')
+FGGREEN=$(printf '\e[92m')
+FGLCYAN=$(printf '\e[96m')
+FGTEAL=$(printf '\e[36m')
+FGDARKBLUE=$(printf '\e[34m')
+FGMAGENTA=$(printf '\e[35m')
+
+CRESET=$(printf '\e[0m')
+
+function prompt_lead() {
+  echo -n "$BGMAGENTA$FGWHITE"
+}
+
+function prompt_sep1() {
+  echo -n "$BGBLACK$FGMAGENTA$FGBLACK$BGDARKBLUE$BGDARKBLUE$FGWHITE"
+}
+
+function prompt_sep2() {
+  echo -n "$BGBLACK$FGDARKBLUE$FGBLACK$BGTEAL$BGTEAL$FGWHITE"
+}
+
+function prompt_sep3() {
+  echo -n "$BGBLACK$FGTEAL$CRESET"
+}
+
+function prompt_2ndline() {
+  echo -n "$BGWHITE$FGBLACK § $BGBLACK$FGWHITE $CRESET"
+}
+
 # Comment in the above and uncomment this below for a color prompt
 case "$TERM" in
 xterm*|rxvt*|screen*|cygwin*)
@@ -34,26 +76,9 @@ xterm*|rxvt*|screen*|cygwin*)
 # third block:
 #   cyan background: \e[106m
 #   black foreground: \e[32m
+#
 
-    BGDARKBLUE=$(printf '\e[44m')
-    FGDARKBLUE=$(printf '\e[34m')
-    BGWHITE=$(printf '\e[107m')
-    FGWHITE=$(printf '\e[97m')
-    FGGREEN=$(printf '\e[92m')
-    BGGREEN=$(printf '\e[102m')
-    FGDGREEN=$(printf '\e[32m')
-    BGDGREEN=$(printf '\e[42m')
-    BGBLACK=$(printf '\e[40m')
-    FGBLACK=$(printf '\e[30m')
-    BGLCYAN=$(printf '\e[106m')
-    FGLCYAN=$(printf '\e[96m')
-    BGTEAL=$(printf '\e[46m')
-    FGTEAL=$(printf '\e[36m')
-    BGMAGENTA=$(printf '\e[45m')
-    FGMAGENTA=$(printf '\e[35m')
-    CRESET=$(printf '\e[0m')
-
-    PS1='\[$BGMAGENTA\]\[$FGWHITE\] \h \[$BGDARKBLUE\]\[$FGMAGENTA\]\[$BGDARKBLUE\]\[$FGWHITE\] \t \[$BGTEAL\]\[$FGDARKBLUE\]\[$BGTEAL\]\[$FGWHITE\] \w \[$BGBLACK\]\[$FGTEAL\]\[$CRESET\]\n\[$BGWHITE\]\[$FGBLACK\] § \[$BGBLACK\]\[$FGWHITE\] \[$CRESET\]'
+PS1='$(prompt_lead) ℞ \h $(prompt_sep1) \D{%F} \t $(prompt_sep2) ✓ \w $(prompt_sep3)\n$(prompt_2ndline)'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
