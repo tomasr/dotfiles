@@ -1,3 +1,21 @@
+
+$defaults = @{
+  bg = [ConsoleColor]::Black;
+  fg = [ConsoleColor]::White;
+}
+
+$rightArrow = [char]0xE0B0 # 
+$rightDiagonal = [char]0xE0BC # 
+$leftDiagonal = [char]0xE0B8 # 
+$rightRound = [char]0xE0B4 # 
+
+$branchSymbol = [char]0xE0A0 # 
+$kubeSymbol = [char]0x2388 # ⎈
+$pathSymbol = [Char]::ConvertFromUtf32(0x1F5BF) # 🖿 
+$hostSymbol = [char]0x0528 # Ԩ 
+$promptSymbol = [char]0x03BB # λ
+$lineNumber = [char]0xe0a1 # 
+
 function local:Get-ShortenedPath([string]$path) {
   $loc = $path.Replace($HOME, '~')
   # remove prefix for UNC paths
@@ -16,116 +34,159 @@ function local:Get-IsAdminUser() {
   return $false
 }
 
-function local:Write-PromptSegment($block, $text) {
-  Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg $text
-}
-
-$defaultSeparator = "$([char]0xE0B0)"
-
-function local:Write-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $false) {
-  $background = (Get-Host).UI.RawUI.BackgroundColor
-  Write-Host $defaultSeparator -NoNewLine -ForegroundColor $leftBlock.bg
-  if ( !$lastInLine ) {
-    Write-Host $defaultSeparator -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $background
-  }
-}
-
-$defaults = @{
-  bg = [ConsoleColor]::Black;
-  fg = [ConsoleColor]::White;
-}
-
-function local:Write-PromptLine($line) {
-  $previous = $null
-  for ( $i = 0; $i -lt $line.Length; $i++ ) {
-    $text = &$line[$i].text
-    if ( $text.Trim().Length -gt 0 ) {
-      if ( $previous -ne $null ) {
-        Write-PromptSeparator $previous $line[$i]
-      }
-      Write-PromptSegment $line[$i] $text
-      $previous = $line[$i]
-    }
-  }
-  Write-PromptSeparator $previous $defaults $true
-}
-
 function local:Get-KubeContext {
   $kubeconfig = (Get-Content ~/.kube/config -ErrorAction SilentlyContinue | Select-String "^current-context:\s*(.+)")
   if ( $kubeconfig -ne $null ) {
-    return "$([char]0x416) $($kubeconfig.Matches.Groups[1].Value)"
+    return " $kubeSymbol $($kubeconfig.Matches.Groups[1].Value) "
   }
-  return $null
+  return ""
+}
+
+function local:Get-GitChanges {
+  $diff = @(git diff --numstat)
+  $added = 0
+  $removed = 0
+  $files = $diff.Length
+  if ( $files -eq 0 ) {
+    return ""
+  }
+  $diff | ForEach-Object {
+    # output is <added> <removed> <filename>
+    $match = $_ -match '(\d+)\s+(\d+)'
+    $added += $matches[1]
+    $removed += $matches[2]
+  }
+
+  return "{$files} $lineNumber +$added -$removed "
 }
 
 function local:Get-GitBranch {
   $branch = git rev-parse --abbrev-ref HEAD 2>&1
   if ( $LASTEXITCODE -eq 0 ) {
-    $dirty = if ((git status --untracked-files=no --porcelain).length -gt 0) { "* " } else { '' }
-    return " $([char]0xE0A0) $branch $dirty"
+    $dirty = Get-GitChanges
+    return " $branchSymbol $branch $dirty"
   }
-  return $null
+  return '' 
 }
 
-function Get-FirstLine() {
+function local:Get-CurrentPath() {
+  return " $pathSymbol  $(Get-ShortenedPath (Get-Location).Path) "
+}
+
+function local:Get-PromptDate() {
+  return " $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') "
+}
+
+function local:Get-Hostname() {
+  return " $hostSymbol $([Environment]::MachineName.ToLower()) "
+}
+
+$line1 = 
   # line 1 => history | machine | datetime | path
-  $line = @(
+  @(
     @{
-      bg   = [ConsoleColor]::DarkGreen;
+      bg   = [ConsoleColor]::DarkGray;
       fg   = [ConsoleColor]::White;
-      text = { " {0} " -f $MyInvocation.HistoryId }
+      text = { " {0} " -f $MyInvocation.HistoryId };
+      sep  = $rightDiagonal;
     },
     @{
       bg   = [ConsoleColor]::Green;
       fg   = [ConsoleColor]::Black;
-      text = { " $([char]0x211E) $([Environment]::MachineName.ToLower()) " }
+      text = { Get-Hostname };
+      sep  = $rightDiagonal;
     },
     @{
-      bg   = [ConsoleColor]::DarkCyan;
+      bg   = [ConsoleColor]::Cyan;
       fg   = [ConsoleColor]::Black;
-      text = { " $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') " };
+      text = { Get-PromptDate };
+      sep  = $rightDiagonal;
     },
     @{
       bg   = [ConsoleColor]::DarkBlue;
       fg   = [ConsoleColor]::White;
-      text = { " $([char]0x2713) $(Get-ShortenedPath (Get-Location).Path) " }
+      text = { Get-CurrentPath };
+      sep  = $rightDiagonal;
     },
     @{
       bg   = [ConsoleColor]::DarkMagenta;
       fg   = [ConsoleColor]::White;
-      text = { "$(Get-GitBranch)" }
+      text = { Get-GitBranch };
+      sep  = $rightDiagonal;
     },
     @{
       bg   = [ConsoleColor]::DarkYellow;
       fg   = [ConsoleColor]::White;
-      text = { " $(Get-KubeContext) " }
+      text = { Get-KubeContext };
+      sep  = $rightDiagonal;
     }
   )
-  return $line
-}
 
-function Get-SecondLine() {
-  # line 2 => admin indicator, command
-  return @(
+$line2 =
+  # Second line, prompt
+  @(
     @{
       bg   = if ( Get-IsAdminUser ) { [ConsoleColor]::DarkMagenta } else { [ConsoleColor]::White };
       fg   = if ( Get-IsAdminUser ) { [ConsoleColor]::White } else { [ConsoleColor]::Black };
-      text = { " $([char]0x00A7) " }
+      text = { " $promptSymbol " };
+      sep  = $rightArrow;
     }
   )
+
+$promptLines = @($line1, $line2)
+
+# Pre-compute the text for all segments of the prompt before rendering
+# to avoid awkward pauses
+function local:Get-ComputedLines($lines) {
+  foreach ( $line in $lines ) {
+    foreach ( $segment in $line ) {
+      $text = Invoke-Command -ScriptBlock $segment.text
+      if ( $text.Trim().Length -eq 0 ) {
+        $text = ""
+      }
+      $segment.value = $text
+    }
+  }
+  return $lines
 }
 
-$promptLines = @(
-  @(Get-FirstLine),
-  @(Get-SecondLine)
-)
+function local:Write-PromptSegment($block, $text) {
+  Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg $text
+}
+
+function local:Write-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $false) {
+  $sep = $rightArrow
+  if ( $leftBlock.sep -ne $null ) {
+    $sep = $leftBlock.sep
+  }
+
+  $background = (Get-Host).UI.RawUI.BackgroundColor
+  Write-Host $sep -NoNewLine -ForegroundColor $leftBlock.bg
+  if ( !$lastInLine ) {
+    Write-Host $sep -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $background
+  }
+}
+
+function local:Write-PromptLine($line) {
+  $previous = $null
+  for ( $i = 0; $i -lt $line.Length; $i++ ) {
+    $text = $line[$i].value
+    if ( $previous -ne $null ) {
+      Write-PromptSeparator $previous $line[$i]
+    }
+    Write-PromptSegment $line[$i] $text
+    $previous = $line[$i]
+  }
+  Write-PromptSeparator $previous $defaults $true
+}
 
 function prompt {
-  for ( $i = 0; $i -lt $promptLines.Length; $i++ ) {
+  $lines = Get-ComputedLines $promptLines
+  for ( $i = 0; $i -lt $lines.Length; $i++ ) {
     if ( $i -gt 0 ) {
       Write-Host "" # add new line
     }
-    Write-PromptLine $promptLines[$i]
+    Write-PromptLine $lines[$i]
   }
   return ' '
 }
