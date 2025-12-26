@@ -22,25 +22,25 @@ fi
 
 
 # Color definitions
-BGBLACK=$(printf '\e[40m')
-BGWHITE=$(printf '\e[107m')
-BGDGREEN=$(printf '\e[42m')
-BGGREEN=$(printf '\e[102m')
-BGLCYAN=$(printf '\e[106m')
-BGTEAL=$(printf '\e[46m')
-BGDARKBLUE=$(printf '\e[44m')
-BGMAGENTA=$(printf '\e[45m')
+BGBLACK=$(printf '\001\e[40m\002')
+BGWHITE=$(printf '\001\e[107m\002')
+BGDGREEN=$(printf '\001\e[42m\002')
+BGGREEN=$(printf '\001\e[102m\002')
+BGLCYAN=$(printf '\001\e[106m\002')
+BGTEAL=$(printf '\001\e[46m\002')
+BGDARKBLUE=$(printf '\001\e[44m\002')
+BGMAGENTA=$(printf '\001\e[45m\002')
 
-FGBLACK=$(printf '\e[30m')
-FGWHITE=$(printf '\e[97m')
-FGDGREEN=$(printf '\e[32m')
-FGGREEN=$(printf '\e[92m')
-FGLCYAN=$(printf '\e[96m')
-FGTEAL=$(printf '\e[36m')
-FGDARKBLUE=$(printf '\e[34m')
-FGMAGENTA=$(printf '\e[35m')
+FGBLACK=$(printf '\001\e[30m\002')
+FGWHITE=$(printf '\001\e[97m\002')
+FGDGREEN=$(printf '\001\e[32m\002')
+FGGREEN=$(printf '\001\e[92m\002')
+FGLCYAN=$(printf '\001\e[96m\002')
+FGTEAL=$(printf '\001\e[36m\002')
+FGDARKBLUE=$(printf '\001\e[34m\002')
+FGMAGENTA=$(printf '\001\e[35m\002')
 
-CRESET=$(printf '\e[0m')
+CRESET=$(printf '\001\e[0m\002')
 
 function prompt_lead() {
   echo -n "$BGMAGENTA$FGWHITE"

@@ -70,7 +70,9 @@ function local:Get-GitBranch {
 }
 
 function local:Get-CurrentPath() {
-  return " $pathSymbol  $(Get-ShortenedPath (Get-Location).Path) "
+  $path = Get-ShortenedPath (Get-Location).Path
+  $path = $path.Replace('\', '/')
+  return " $pathSymbol  $path "
 }
 
 function local:Get-PromptDate() {
