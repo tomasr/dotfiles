@@ -8,6 +8,7 @@ $rightArrow = [char]0xE0B0 # 
 $rightDiagonal = [char]0xE0BC # 
 $leftDiagonal = [char]0xE0B8 # 
 $rightRound = [char]0xE0B4 # 
+$leftRound = [char]0xE0B6 # 
 
 $branchSymbol = [char]0xE0A0 # 
 $kubeSymbol = [char]0x2388 # ⎈
@@ -57,7 +58,7 @@ function local:Get-GitChanges {
     $removed += $matches[2]
   }
 
-  return "{$files} $lineNumber +$added -$removed "
+  return " ~$files $lineNumber +$added -$removed "
 }
 
 function local:Get-GitBranch {
@@ -83,6 +84,9 @@ function local:Get-Hostname() {
   return " $hostSymbol $([Environment]::MachineName.ToLower()) "
 }
 
+$SEP_STYLE_NONE  = 0
+$SEP_STYLE_SPACE = 1
+
 $line1 = 
   # line 1 => history | machine | datetime | path
   @(
@@ -91,36 +95,42 @@ $line1 =
       fg   = [ConsoleColor]::White;
       text = { " {0} " -f $MyInvocation.HistoryId };
       sep  = $rightDiagonal;
+      sepStyle = $SEP_STYLE_SPACE;
     },
     @{
-      bg   = [ConsoleColor]::Green;
-      fg   = [ConsoleColor]::Black;
+      bg   = [ConsoleColor]::DarkCyan;
+      fg   = [ConsoleColor]::White;
       text = { Get-Hostname };
       sep  = $rightDiagonal;
+      sepStyle = $SEP_STYLE_NONE;
     },
     @{
       bg   = [ConsoleColor]::Cyan;
       fg   = [ConsoleColor]::Black;
       text = { Get-PromptDate };
       sep  = $rightDiagonal;
+      sepStyle = $SEP_STYLE_SPACE;
     },
     @{
       bg   = [ConsoleColor]::DarkBlue;
       fg   = [ConsoleColor]::White;
       text = { Get-CurrentPath };
       sep  = $rightDiagonal;
+      sepStyle = $SEP_STYLE_NONE;
     },
     @{
       bg   = [ConsoleColor]::DarkMagenta;
       fg   = [ConsoleColor]::White;
       text = { Get-GitBranch };
       sep  = $rightDiagonal;
+      sepStyle = $SEP_STYLE_SPACE;
     },
     @{
       bg   = [ConsoleColor]::DarkYellow;
       fg   = [ConsoleColor]::White;
       text = { Get-KubeContext };
       sep  = $rightDiagonal;
+      sepStyle = $SEP_STYLE_NONE;
     }
   )
 
@@ -132,6 +142,7 @@ $line2 =
       fg   = if ( Get-IsAdminUser ) { [ConsoleColor]::White } else { [ConsoleColor]::Black };
       text = { " $promptSymbol " };
       sep  = $rightArrow;
+      sepStyle = $SEP_STYLE_NONE;
     }
   )
 
@@ -158,26 +169,39 @@ function local:Write-PromptSegment($block, $text) {
 
 function local:Write-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $false) {
   $sep = $rightArrow
+  $style = $SEP_STYLE_NONE
   if ( $leftBlock.sep -ne $null ) {
     $sep = $leftBlock.sep
+    $style = $leftBlock.sepStyle
   }
 
   $background = (Get-Host).UI.RawUI.BackgroundColor
-  Write-Host $sep -NoNewLine -ForegroundColor $leftBlock.bg
-  if ( !$lastInLine ) {
-    Write-Host $sep -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $background
+  if ( $style -eq $SEP_STYLE_SPACE ) {
+    Write-Host $sep -NoNewLine -ForegroundColor $leftBlock.bg
+    if ( !$lastInLine ) {
+      Write-Host $sep -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $background
+    }
+  } else {
+    Write-Host $sep -NoNewLine -ForegroundColor $leftBlock.bg -Background $rightBlock.bg
   }
+}
+
+function local:Write-PromptLineStart($symbol, $style) {
+  Write-Host $symbol -NoNewLine -ForegroundColor $style.bg
 }
 
 function local:Write-PromptLine($line) {
   $previous = $null
   for ( $i = 0; $i -lt $line.Length; $i++ ) {
-    $text = $line[$i].value
+    $segment = $line[$i]
+    $text = $segment.value
     if ( $previous -ne $null ) {
-      Write-PromptSeparator $previous $line[$i]
+      Write-PromptSeparator $previous $segment
+    } else {
+      Write-PromptLineStart $leftRound $segment
     }
-    Write-PromptSegment $line[$i] $text
-    $previous = $line[$i]
+    Write-PromptSegment $segment $text
+    $previous = $segment
   }
   Write-PromptSeparator $previous $defaults $true
 }
