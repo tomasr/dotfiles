@@ -37,7 +37,7 @@ function script:Append-Path([string] $path ) {
 append-path "$TOOLS"
 
 Import-Module ~/scripts/DevEnvironment
-Set-DevEnvironment 17
+Set-DevEnvironmentAny
 
 . ~/scripts/Set-Prompt.ps1
 

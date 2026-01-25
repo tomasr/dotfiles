@@ -51,6 +51,24 @@ function Import-Environment() {
     }
 }
 
+
+$vsVersions = @(
+  @{ Version = 17; Path = Join-Path $env:ProgramFiles "Microsoft Visual Studio\18\*\Common7\Tools\VsDevCmd.bat" },
+  @{ Version = 16; Path = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2019\*\Common7\Tools\VsDevCmd.bat"; },
+  @{ Version = 15; Path = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2017\*\Common7\Tools\VsDevCmd.bat"; }
+)
+
+function Set-DevEnvironmentAny() {
+  foreach ( $vs in $vsVersions ) {
+    $path = Resolve-Path $vs.Path -ErrorAction SilentlyContinue
+    if ( Test-Path $path ) {
+      . Import-Environment $path
+      return;
+    }
+  }
+  throw "No supported VS versions found"
+}
+
 function Set-DevEnvironment() {
     param ( [string]$version = $(throw "Need a VS version"))
 
@@ -64,6 +82,9 @@ function Set-DevEnvironment() {
         . Import-Environment (resolve-path $vsPath)
     } elseif ( $version -eq 17 ) {
         $vsPath = Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\*\Common7\Tools\VsDevCmd.bat"
+        . Import-Environment -file (resolve-path $vsPath) -argv $arch
+    } elseif ( $version -eq 18 ) {
+        $vsPath = Join-Path $env:ProgramFiles "Microsoft Visual Studio\18\*\Common7\Tools\VsDevCmd.bat"
         . Import-Environment -file (resolve-path $vsPath) -argv $arch
     } else {
         $vsPath = "Microsoft Visual Studio $version.0\VC\vcvarsall.bat"
