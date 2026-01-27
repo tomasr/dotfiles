@@ -53,7 +53,8 @@ function Import-Environment() {
 
 
 $vsVersions = @(
-  @{ Version = 17; Path = Join-Path $env:ProgramFiles "Microsoft Visual Studio\18\*\Common7\Tools\VsDevCmd.bat" },
+  @{ Version = 18; Path = Join-Path $env:ProgramFiles "Microsoft Visual Studio\18\*\Common7\Tools\VsDevCmd.bat" },
+  @{ Version = 17; Path = Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\*\Common7\Tools\VsDevCmd.bat" },
   @{ Version = 16; Path = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2019\*\Common7\Tools\VsDevCmd.bat"; },
   @{ Version = 15; Path = Join-Path (Get-ProgramFiles32) "Microsoft Visual Studio\2017\*\Common7\Tools\VsDevCmd.bat"; }
 )
@@ -61,7 +62,7 @@ $vsVersions = @(
 function Set-DevEnvironmentAny() {
   foreach ( $vs in $vsVersions ) {
     $path = Resolve-Path $vs.Path -ErrorAction SilentlyContinue
-    if ( Test-Path $path ) {
+    if ( ($path -ne $null) -and (Test-Path $path) ) {
       . Import-Environment $path
       return;
     }
