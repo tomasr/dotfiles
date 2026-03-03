@@ -4,8 +4,17 @@
 [core]
    autocrlf=input
    packedGitLimit = 512m
-  packedGitWindowSize = 512m
+   packedGitWindowSize = 512m
+   windowMemory = 2047m
+   pager = delta
+
 [pack]
   deltaCacheSize = 2047m
   packSizeLimit = 2047m
-  windowMemory = 2047m
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true  # use n and N to move between diff sections
+    dark = true      # or light = true, or omit for auto-detection
