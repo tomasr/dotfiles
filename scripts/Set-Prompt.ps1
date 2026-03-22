@@ -127,7 +127,7 @@ $line1 =
     },
     @{
       bg   = [ConsoleColor]::DarkYellow;
-      fg   = [ConsoleColor]::White;
+      fg   = [ConsoleColor]::Black;
       text = { Get-KubeContext };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_NONE;

@@ -43,6 +43,7 @@ set ttyfast                 " Speed up scrolling in Vim
 call plug#begin()
 Plug 'sainnhe/everforest'
 Plug 'navarasu/onedark.nvim'
+Plug 'sainnhe/gruvbox-material'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -52,7 +53,7 @@ call plug#end()
 let g:onedark_config = {
       \ 'style': 'darker',
       \}
-colorscheme everforest
+colorscheme gruvbox-material
 
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_theme='powerlineish'
