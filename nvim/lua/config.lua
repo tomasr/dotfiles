@@ -28,3 +28,6 @@ require('nvim-treesitter.configs').setup({
     },
 })
 
+require('neo-tree').setup({
+  -- options go here
+})
