@@ -1,5 +1,5 @@
 require 'nvim-treesitter.install'.compilers = { "cl", "gcc", "cc" }
-require('nvim-treesitter.configs').setup({
+require('nvim-treesitter.config').setup({
     ensure_installed = {
       "c", "c_sharp","java", 
       "html", "lua", "markdown",
