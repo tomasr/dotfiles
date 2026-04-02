@@ -11,7 +11,7 @@
   "profiles": {
     "defaults": {
       "useAcrylic": false,
-      "fontFace": "Cascadia Mono PL",
+      "fontFace": "Cascadia Code NF",
       "fontSize": 13,
       "colorScheme": "Gruvbox Dark"
     },

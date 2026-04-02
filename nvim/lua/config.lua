@@ -5,7 +5,7 @@ require('nvim-treesitter.config').setup({
       "html", "lua", "markdown",
       "powershell", "bash", "xml",
       "make", "javascript", "json",
-      "go"
+      "go", "luadoc", "vimdoc"
     }, -- one of 'all', 'maintained' (parsers with maintainers), or a list of languages
     highlight = {
         enable = true,
@@ -32,9 +32,9 @@ require('neo-tree').setup({
   -- options go here
 })
 
-require'lualine'.setup({
+require('lualine').setup({
   options = {
-    icons_enabled = false,
+    icons_enabled = true,
     theme = 'codedark',
     section_separators = {
       left = '\u{E0BC}',
