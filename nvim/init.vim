@@ -48,8 +48,10 @@ call plug#begin()
 Plug 'sainnhe/everforest'
 Plug 'navarasu/onedark.nvim'
 Plug 'sainnhe/gruvbox-material'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+Plug 'sainnhe/sonokai'
+Plug 'nvim-lualine/lualine.nvim'
+"Plug 'vim-airline/vim-airline'
+"Plug 'vim-airline/vim-airline-themes'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'HiPhish/rainbow-delimiters.nvim'
 " neotree
@@ -62,12 +64,14 @@ call plug#end()
 let g:onedark_config = {
       \ 'style': 'darker',
       \}
+let g:gruvbox_material_background = 'hard'
 colorscheme gruvbox-material
 
-let g:airline#extensions#tabline#enabled = 1
-let g:airline_theme='powerlineish'
-let g:airline_powerline_fonts = 1
-let g:airline_linecolumn_prefix = '§'
-let g:airline_enable_syntastic=1
+"let g:airline#extensions#tabline#enabled = 1
+"let g:airline_theme='gruvbox_material'
+"let g:airline_theme='powerlineish'
+"let g:airline_powerline_fonts = 1
+"let g:airline_linecolumn_prefix = '§'
+"let g:airline_enable_syntastic=1
 
 lua require('config')

@@ -31,3 +31,27 @@ require('nvim-treesitter.config').setup({
 require('neo-tree').setup({
   -- options go here
 })
+
+require'lualine'.setup({
+  options = {
+    icons_enabled = false,
+    theme = 'codedark',
+    section_separators = {
+      left = '\u{E0BC}',
+      right = '\u{E0BA}'
+    },
+    component_separators = {
+      left = '\u{E0BD}',
+      right = '\u{E0BD}'
+    }
+  },
+  tabline = {
+    lualine_a = {'buffers'},
+    lualine_b = {},
+    lualine_c = {},
+    lualine_x = {},
+    lualine_y = {},
+    lualine_z = {'tabs'}
+  }
+})
+
