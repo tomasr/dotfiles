@@ -1,21 +1,36 @@
 
-$defaults = @{
-  bg = [ConsoleColor]::Black;
-  fg = [ConsoleColor]::White;
+# Color palette - each color has .Fg and .Bg ANSI escape sequences
+function local:NewColor([ConsoleColor]$c) {
+  [PSCustomObject]@{
+    Fg = $PSStyle.Foreground.FromConsoleColor($c)
+    Bg = $PSStyle.Background.FromConsoleColor($c)
+  }
 }
 
-$rightArrow = [char]0xE0B0 # 
-$rightDiagonal = [char]0xE0BC # 
-$leftDiagonal = [char]0xE0B8 # 
-$rightRound = [char]0xE0B4 # 
-$leftRound = [char]0xE0B6 # 
+$ColorBlack       = NewColor Black
+$ColorWhite       = NewColor White
+$ColorDarkGray    = NewColor DarkGray
+$ColorDarkCyan    = NewColor DarkCyan
+$ColorCyan        = NewColor Cyan
+$ColorDarkBlue    = NewColor DarkBlue
+$ColorDarkMagenta = NewColor DarkMagenta
+$ColorDarkYellow  = NewColor DarkYellow
+$reset            = $PSStyle.Reset
 
-$branchSymbol = [char]0xE0A0 # 
+$defaults = @{ back = $ColorBlack; fore = $ColorWhite }
+
+$rightArrow = [char]0xE0B0 #
+$rightDiagonal = [char]0xE0BC #
+$leftDiagonal = [char]0xE0B8 #
+$rightRound = [char]0xE0B4 #
+$leftRound = [char]0xE0B6 #
+
+$branchSymbol = [char]0xE0A0 #
 $kubeSymbol = [char]0x2388 # ⎈
-$pathSymbol = [Char]::ConvertFromUtf32(0x1F5BF) # 🖿 
-$hostSymbol = [char]0x0528 # Ԩ 
+$pathSymbol = [Char]::ConvertFromUtf32(0x1F5BF) # 🖿
+$hostSymbol = [char]0x23FB # ⏻
 $promptSymbol = [char]0x03BB # λ
-$lineNumber = [char]0xe0a1 # 
+$lineNumber = [char]0xe0a1 #
 
 function local:Get-ShortenedPath([string]$path) {
   $loc = $path.Replace($HOME, '~')
@@ -67,7 +82,7 @@ function local:Get-GitBranch {
     $dirty = Get-GitChanges
     return " $branchSymbol $branch $dirty"
   }
-  return '' 
+  return ''
 }
 
 function local:Get-CurrentPath() {
@@ -87,47 +102,47 @@ function local:Get-Hostname() {
 $SEP_STYLE_NONE  = 0
 $SEP_STYLE_SPACE = 1
 
-$line1 = 
+$line1 =
   # line 1 => history | machine | datetime | path
   @(
     @{
-      bg   = [ConsoleColor]::DarkGray;
-      fg   = [ConsoleColor]::White;
+      back = $ColorDarkGray;
+      fore = $ColorWhite;
       text = { " {0} " -f $MyInvocation.HistoryId };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_SPACE;
     },
     @{
-      bg   = [ConsoleColor]::DarkCyan;
-      fg   = [ConsoleColor]::White;
+      back = $ColorDarkCyan;
+      fore = $ColorWhite;
       text = { Get-Hostname };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_NONE;
     },
     @{
-      bg   = [ConsoleColor]::Cyan;
-      fg   = [ConsoleColor]::Black;
+      back = $ColorCyan;
+      fore = $ColorBlack;
       text = { Get-PromptDate };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_SPACE;
     },
     @{
-      bg   = [ConsoleColor]::DarkBlue;
-      fg   = [ConsoleColor]::White;
+      back = $ColorDarkBlue;
+      fore = $ColorWhite;
       text = { Get-CurrentPath };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_NONE;
     },
     @{
-      bg   = [ConsoleColor]::DarkMagenta;
-      fg   = [ConsoleColor]::White;
+      back = $ColorDarkMagenta;
+      fore = $ColorWhite;
       text = { Get-GitBranch };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_SPACE;
     },
     @{
-      bg   = [ConsoleColor]::DarkYellow;
-      fg   = [ConsoleColor]::Black;
+      back = $ColorDarkYellow;
+      fore = $ColorBlack;
       text = { Get-KubeContext };
       sep  = $rightDiagonal;
       sepStyle = $SEP_STYLE_NONE;
@@ -138,8 +153,8 @@ $line2 =
   # Second line, prompt
   @(
     @{
-      bg   = if ( Get-IsAdminUser ) { [ConsoleColor]::DarkMagenta } else { [ConsoleColor]::White };
-      fg   = if ( Get-IsAdminUser ) { [ConsoleColor]::White } else { [ConsoleColor]::Black };
+      back = if ( Get-IsAdminUser ) { $ColorDarkMagenta } else { $ColorWhite };
+      fore = if ( Get-IsAdminUser ) { $ColorWhite } else { $ColorBlack };
       text = { " $promptSymbol " };
       sep  = $rightArrow;
       sepStyle = $SEP_STYLE_NONE;
@@ -163,11 +178,11 @@ function local:Get-ComputedLines($lines) {
   return $lines
 }
 
-function local:Write-PromptSegment($block, $text) {
-  Write-Host -NoNewLine -BackgroundColor $block.bg -ForegroundColor $block.fg $text
+function local:Format-PromptSegment($block, $text) {
+  return "$($block.fore.Fg)$($block.back.Bg)$text"
 }
 
-function local:Write-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $false) {
+function local:Format-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $false) {
   $sep = $rightArrow
   $style = $SEP_STYLE_NONE
   if ( $leftBlock.sep -ne $null ) {
@@ -175,44 +190,51 @@ function local:Write-PromptSeparator($leftBlock, $rightBlock, $lastInLine = $fal
     $style = $leftBlock.sepStyle
   }
 
-  $background = (Get-Host).UI.RawUI.BackgroundColor
   if ( $style -eq $SEP_STYLE_SPACE ) {
-    Write-Host $sep -NoNewLine -ForegroundColor $leftBlock.bg
+    $result = "$reset$($leftBlock.back.Fg)$sep"
     if ( !$lastInLine ) {
-      Write-Host $sep -NoNewLine -BackgroundColor $rightBlock.bg -ForegroundColor $background
+      $result += "$($rightBlock.back.Bg)$($defaults.back.Fg)$sep"
     }
+    return $result
   } else {
-    Write-Host $sep -NoNewLine -ForegroundColor $leftBlock.bg -Background $rightBlock.bg
+    if ( $lastInLine ) {
+      return "$reset$($leftBlock.back.Fg)$sep"
+    }
+    return "$($leftBlock.back.Fg)$($rightBlock.back.Bg)$sep"
   }
 }
 
-function local:Write-PromptLineStart($symbol, $style) {
-  Write-Host $symbol -NoNewLine -ForegroundColor $style.bg
+function local:Format-PromptLineStart($symbol, $style) {
+  return "$reset$($style.back.Fg)$symbol"
 }
 
-function local:Write-PromptLine($line) {
+function local:Format-PromptLine($line) {
+  $result = ""
   $previous = $null
   for ( $i = 0; $i -lt $line.Length; $i++ ) {
     $segment = $line[$i]
     $text = $segment.value
     if ( $previous -ne $null ) {
-      Write-PromptSeparator $previous $segment
+      $result += Format-PromptSeparator $previous $segment
     } else {
-      Write-PromptLineStart $leftRound $segment
+      $result += Format-PromptLineStart $leftRound $segment
     }
-    Write-PromptSegment $segment $text
+    $result += Format-PromptSegment $segment $text
     $previous = $segment
   }
-  Write-PromptSeparator $previous $defaults $true
+  $result += Format-PromptSeparator $previous $defaults $true
+  $result += $reset
+  return $result
 }
 
 function prompt {
   $lines = Get-ComputedLines $promptLines
+  $result = ""
   for ( $i = 0; $i -lt $lines.Length; $i++ ) {
     if ( $i -gt 0 ) {
-      Write-Host "" # add new line
+      $result += "`n"
     }
-    Write-PromptLine $lines[$i]
+    $result += Format-PromptLine $lines[$i]
   }
-  return ' '
+  return "$result "
 }
