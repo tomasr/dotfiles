@@ -78,7 +78,8 @@ xterm*|rxvt*|screen*|cygwin*)
 #   black foreground: \e[32m
 #
 
-PS1='$(prompt_lead) ℞ \h $(prompt_sep1) \D{%F} \t $(prompt_sep2) ✓ \w $(prompt_sep3)\n$(prompt_2ndline)'
+PS1='$(prompt_lead) ℞ \h $(prompt_sep1) \D{%F} \t $(prompt_sep2) ✓ \w $(prompt_sep3)
+$(prompt_2ndline)'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
