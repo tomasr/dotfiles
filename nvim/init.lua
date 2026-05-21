@@ -90,3 +90,10 @@ require("config")
 vim.g.gruvbox_material_background="hard"
 vim.cmd.colorscheme("gruvbox-material")
 
+-- other file types
+vim.filetype.add({
+  extension = {
+    rsd = "xml",
+    rsb = "xml"
+  }
+})
