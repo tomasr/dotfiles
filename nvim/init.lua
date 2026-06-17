@@ -74,8 +74,24 @@ require("lazy").setup({
     "HiPhish/rainbow-delimiters.nvim",
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
-    { "nvim-neo-tree/neo-tree.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
-    { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } }
+    { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
+    {
+      "nvim-neo-tree/neo-tree.nvim",
+      dependencies = { "nvim-tree/nvim-web-devicons" },
+      opts = {
+        filesystem = {
+          filtered_items = {
+            visible = true,
+            show_hidden_count = true,
+            hide_dotfiles = false,
+            hide_gitignored = false,
+            hide_ignored = false,
+            hide_hidden = false,
+            never_show = {}
+          }
+        }
+      }
+    }
   },
   -- Configure any other settings here. See the documentation for more details.
   -- colorscheme that will be used when installing plugins.
