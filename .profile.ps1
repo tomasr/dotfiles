@@ -17,8 +17,8 @@ set-variable -name HOME -value (resolve-path $env:Home).Path -force
 # global variables and core env variables
 #
 $HOME_ROOT = [IO.Path]::GetPathRoot($HOME)
-$TOOLS = "$HOME_ROOT\tools"
-$SCRIPTS = "$HOME\scripts"
+$TOOLS = Join-Path $HOME_ROOT "tools"
+$SCRIPTS = Join-Path "$HOME" "scripts"
 $env:EDITOR = 'nvim'
 
 #
@@ -26,15 +26,19 @@ $env:EDITOR = 'nvim'
 # and configure dev environment
 #
 function script:Append-Path([string] $path ) {
-   if ( -not [string]::IsNullOrEmpty($path) ) {
-      if ( (test-path $path) -and (-not $env:PATH.contains($path)) ) {
-         $env:PATH += ';' + $path
-      }
-   }
+  if ( (-not [string]::IsNullOrEmpty($path)) -and (test-path $path)  ) {
+    $parts = $env:PATH.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries)
+    if ( $paths -notcontains $path ) {
+      $parts += $path
+      $env:PATH = $parts -join ';'
+    }
+  }
 }
 
 
 append-path "$TOOLS"
+
+$env:PATH -split ';'
 
 Import-Module ~/scripts/DevEnvironment
 Set-DevEnvironmentAny

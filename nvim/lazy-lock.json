@@ -3,12 +3,12 @@
   "gruvbox-material": { "branch": "master", "commit": "11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
   "lualine.nvim": { "branch": "master", "commit": "221ce6b2d999187044529f49da6554a92f740a96" },
-  "neo-tree.nvim": { "branch": "main", "commit": "b01ee1769144c4491ea44bc329cb84040e9793be" },
+  "neo-tree.nvim": { "branch": "main", "commit": "6679b9395526b52ddb2b137fcd5255dab71c5a58" },
   "nui.nvim": { "branch": "main", "commit": "de740991c12411b663994b2860f1a4fd0937c130" },
-  "nvim-treesitter": { "branch": "main", "commit": "4916d6592ede8c07973490d9322f187e07dfefac" },
-  "nvim-web-devicons": { "branch": "master", "commit": "0ca28b61a04fe7426cefbdd52c2647ef0e335b5f" },
+  "nvim-treesitter": { "branch": "main", "commit": "7b6cc8949f9999c5ed91436cbe24aa5f99c42025" },
+  "nvim-web-devicons": { "branch": "master", "commit": "2ae6958df7ced50baac5035cec0c15799eedfbf7" },
   "onedark.nvim": { "branch": "master", "commit": "df4792accde9db0043121f32628bcf8e645d9aea" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
-  "rainbow-delimiters.nvim": { "branch": "master", "commit": "a798325b7f36acc62741d1029930a7b96d4dd4bf" },
+  "rainbow-delimiters.nvim": { "branch": "master", "commit": "012f1480cd9a5fc99fce7678e0a536421a53fc46" },
   "sonokai": { "branch": "master", "commit": "b023c5280b16fe2366f5e779d8d2756b3e5ee9c3" }
 }
