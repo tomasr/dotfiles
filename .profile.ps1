@@ -38,8 +38,6 @@ function script:Append-Path([string] $path ) {
 
 append-path "$TOOLS"
 
-$env:PATH -split ';'
-
 Import-Module ~/scripts/DevEnvironment
 Set-DevEnvironmentAny
 
